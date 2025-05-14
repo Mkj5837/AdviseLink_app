@@ -22,25 +22,30 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected routes with Layout */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/" element={<Home />} />
+
+        {/* Protected routes with Layout
         <Route
           path="/"
           element={
-            <ProtectedRoute>
-              <Home>
-                <Routes>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route
-                    path="/student-dashboard"
-                    element={<StudentDashboard />}
-                  />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/" element={<Navigate to="/dashboard" />} />
-                </Routes>
-              </Home>
-            </ProtectedRoute>
+            // <ProtectedRoute>
+            <Home>
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route
+                  path="/student-dashboard"
+                  element={<StudentDashboard />}
+                />
+                <Route path="/about" element={<About />} />
+                <Route path="/" element={<Navigate to="/dashboard" />} />
+              </Routes>
+            </Home>
+            // </ProtectedRoute>
           }
-        />
+        /> */}
       </Routes>
     </Router>
   );
