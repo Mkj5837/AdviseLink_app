@@ -4,6 +4,7 @@ import WelcomeCard from "./WelcomeCard";
 import RequestsSection from "./Requests";
 import AdviseesList from "./AdviseeList";
 import logo from "../Images/AdviseLinkLogo.png";
+import stud1 from "../Images/studImge.jpg";
 
 const Dashboard = () => {
   return (
@@ -52,7 +53,7 @@ const Dashboard = () => {
           <h1>Dashboard</h1>
           <div className="user-menu">
             <span>Teacher</span>
-            <img src="/avatar.png" alt="User" className="user-avatar" />
+            <img src={stud1} alt="User" className="user-avatar" />
           </div>
         </header>
 

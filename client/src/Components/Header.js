@@ -1,6 +1,6 @@
 import { Navbar, Nav, NavItem, NavLink } from "reactstrap";
-
 import { Link } from "react-router-dom";
+import logo from "../Images/AdLink-logo.png";
 
 const Header = () => {
   return (
@@ -8,7 +8,9 @@ const Header = () => {
       <Navbar className="header">
         <Nav>
           <NavItem>
-            <p>image.</p>
+            <p>
+              <img src={logo} className="logo" />
+            </p>
           </NavItem>
           <NavItem>
             <Link to="/">Home</Link>

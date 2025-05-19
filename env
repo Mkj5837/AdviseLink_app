@@ -1,0 +1,151 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const dotenv = require('dotenv');
+const UserModel = require('./Models/UserModel');
+const PostModel = require('./Models/PostModel');
+const bcrypt = require('bcrypt');
+
+dotenv.config();
+
+const app = express();
+
+// Middleware
+const corsOptions = {
+  origin: process.env.CLIENT_URL,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+
+// Database connection
+const connectString = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_CLUSTER}/${process.env.DB_NAME}?retryWrites=true&w=majority&appName=${process.env.DB_APP_NAME}`;
+
+mongoose.connect(connectString);
+
+// API Routes
+// Register User
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = new UserModel({
+      name,
+      email,
+      password: hashedPassword,
+    });
+
+    await user.save();
+    res.status(201).json({ user, message: "User registered successfully." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Login
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await UserModel.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    res.status(200).json({ user, message: "Login successful." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Logout
+app.post("/api/auth/logout", async (req, res) => {
+  res.status(200).json({ message: "Logged out successfully" });
+});
+
+// Update Profile
+app.put("/api/users/profile", async (req, res) => {
+  try {
+    const { userId, updates } = req.body;
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, { new: true });
+    res.status(200).json({ user: updatedUser, message: "Profile updated successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create Post
+app.post("/api/posts", async (req, res) => {
+  try {
+    const { content, userId } = req.body;
+    const post = new PostModel({
+      content,
+      userId,
+      likes: { count: 0, users: [] }
+    });
+    await post.save();
+    res.status(201).json({ post, message: "Post created successfully." });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Posts
+app.get("/api/posts", async (req, res) => {
+  try {
+    const posts = await PostModel.find().sort({ createdAt: -1 });
+    const count = await PostModel.countDocuments();
+    res.status(200).json({ posts, count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Like/Unlike Post
+app.put("/api/posts/:postId/like", async (req, res) => {
+  try {
+    const { postId } = req.params;
+    const { userId } = req.body;
+    const post = await PostModel.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({ error: "Post not found" });
+    }
+
+    const userLikedIndex = post.likes.users.indexOf(userId);
+    if (userLikedIndex !== -1) {
+      // Unlike
+      post.likes.count -= 1;
+      post.likes.users.pull(userId);
+    } else {
+      // Like
+      post.likes.count += 1;
+      post.likes.users.push(userId);
+    }
+
+    await post.save();
+    res.status(200).json({ post, message: userLikedIndex !== -1 ? "Post unliked" : "Post liked" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+PORT=5000
+CLIENT_URL=http://localhost:3000
+DB_USER=admin
+DB_PASSWORD=admin1234
+DB_CLUSTER=AdviseLinkCluster
+DB_NAME=adviselink_db
+DB_APP_NAME=AdviseLink
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

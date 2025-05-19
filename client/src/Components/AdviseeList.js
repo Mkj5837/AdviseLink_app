@@ -1,15 +1,17 @@
 import React from "react";
+import stud1 from "../Images/avatars/student1.jpg";
+import stud2 from "../Images/avatars/stud2.jpg";
 
 const AdviseesList = () => {
   const recentAdvisees = [
     {
       name: "Francis Tran",
-      image: "/avatars/francis.png",
+      image: "../Images/avatars/student1.jpg",
       timeAgo: "05 Minutes Ago",
     },
     {
       name: "Elliana Palacios",
-      image: "/avatars/elliana.png",
+      image: "../Images/avatars/stud2.jpg",
       timeAgo: "23 Minutes Ago",
     },
     {
