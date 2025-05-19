@@ -5,6 +5,7 @@ import Header from "./Header";
 import Footer from "./Footer";
 import logo1 from "../Images/AdviseLinkLogo1.png";
 import logo2 from "../Images/AdviseLinkLogo2.png";
+import Logo from "./Logo";
 
 const Home = () => {
   return (
@@ -13,6 +14,7 @@ const Home = () => {
       <Container className="my-5">
         <Row className="align-items-center">
           <Col md={6}>
+            <Logo />
             <h1 className="display-4">Welcome to AdviseLink</h1>
             <p className="lead">
               Connect with advisors and get expert guidance for your academic

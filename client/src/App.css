@@ -63,21 +63,6 @@ a:hover {
   text-align: center;
 }
 
-.logo-container {
-  margin-bottom: 20px;
-}
-
-.logo {
-  width: 80px;
-  height: 80px;
-  background-color: #4285f4;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 40px;
-}
 
 h1 {
   color: #4285f4;

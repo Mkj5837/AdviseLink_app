@@ -1,0 +1,29 @@
+.logo-container {
+  position: relative;
+  z-index: 2;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo img {
+  width: 70%;
+  height: auto;
+  object-fit: contain;
+}
+
+.circle-background {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  background-color: #4285f4;
+  border-radius: 50%;
+  z-index: 1;
+}
