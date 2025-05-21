@@ -16,18 +16,19 @@ import Home from "./Components/Home";
 
 const App = () => {
   return (
-    <Router>
-      <Routes>
-        {/* Public routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+    <Container fluid>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/student-dashboard" element={<StudentDashboard />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/" element={<Home />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/" element={<Home />} />
 
-        {/* Protected routes with Layout
+          {/* Protected routes with Layout
         <Route
           path="/"
           element={
@@ -46,8 +47,10 @@ const App = () => {
             // </ProtectedRoute>
           }
         /> */}
-      </Routes>
-    </Router>
+        </Routes>
+        <Footer />
+      </Router>
+    </Container>
   );
 };
 

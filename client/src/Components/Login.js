@@ -68,7 +68,7 @@ const Login = () => {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
+                placeholder="********"
               />
               <button
                 type="button"
@@ -83,20 +83,20 @@ const Login = () => {
           </div>
 
           <a href="/forgot-password" className="forgot-password">
-            Forgot my password
+            Forgot password ?
           </a>
 
           <button type="submit" className="sign-in-button">
-            Sign in
+            Sign-in
           </button>
 
           <p className="create-account">
-            Don't have an account yet? <a href="/register">Sign Up</a>
+            Don't have an account yet? <a href="/register">Sign-Up</a>
           </p>
         </form>
       </div>
       {/* //end of "login-container" div */}
-    </div> //end 0f "container" div
+    </div> //end of container divs
   );
 };
 
