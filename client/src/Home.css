@@ -25,9 +25,8 @@
 .logo-section {
   display: flex;
   align-items: center;
-  gap: 12px;
-
-  }
+  /* gap: 12px; */
+}
 
 .header-logo {
   height: 40px;

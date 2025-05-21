@@ -1,6 +1,6 @@
 import { Navbar, Nav, NavItem, NavLink } from "reactstrap";
 import { Link } from "react-router-dom";
-import logo from "../Images/AdLink-logo.png";
+import logo from "../Images/AdviseLinkLogo.png";
 
 const Header = () => {
   return (

@@ -2,10 +2,11 @@ import React from "react";
 import "../Logo.css";
 import bglogo from "../Images/AdviseLinkLogo.png";
 
-const Logo = ({ size = "80px" }) => {
+const Logo = () => {
+  // { size = "80px" }
   return (
     <div className="logo-container">
-      <div className="circle-background"></div>
+      {/* <div className="circle-background"></div> */}
       <div className="logo">
         <img src={bglogo} alt="AdviseLink Logo" />
       </div>

@@ -1,18 +1,22 @@
-import { configureStore } from '@reduxjs/toolkit';
-import { combineReducers } from 'redux';
-import { persistStore, persistReducer } from 'redux-persist';
-import storage from 'redux-persist/lib/storage';
+import { configureStore } from "@reduxjs/toolkit";
+import { combineReducers } from "redux";
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage";
+import authReducer from "../Features/authSlice";
+import userReducer from "../Features/userSlice";
+import messageReducer from "../Features/messagesSlice";
 
-// Initial reducers (you can add more as needed)
+// Initial reducers
 const initialReducers = {
-  // Add your reducers here
-  // Example: auth: authReducer,
+  auth: authReducer,
+  user: userReducer,
+  messages: messageReducer,
 };
 
 const persistConfig = {
-  key: 'root',
+  key: "root",
   storage,
-  whitelist: ['auth'] // Only persist auth state
+  whitelist: ["auth"], // Only persist auth state
 };
 
 const rootReducer = combineReducers(initialReducers);

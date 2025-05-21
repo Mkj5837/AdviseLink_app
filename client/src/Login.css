@@ -1,10 +1,11 @@
 .container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background-color: #f5f5f5;
-  padding: 20px;
+  /* padding: 20px; */
   position: relative;
   overflow: hidden;
 }
@@ -16,7 +17,7 @@
   position: absolute;
   width: 300px;
   height: 300px;
-  background-color: #4285f4;
+  /* background-color: #4285f4; */
   border-radius: 50%;
   z-index: 0;
 }
@@ -24,25 +25,25 @@
 .container::before {
   bottom: -100px;
   left: -100px;
-  background-image: image("./Images/AdLink-logo.png");
-  background-size: 50%;
+  background-image: url("./Images/AdviseLinkLogo1.png");
+  background-size: 100%;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.9;
+  /* opacity: 0.9; */
 }
 
 .container::after {
   top: -50px;
   right: -50px;
-  background-image: image("./Images/AdviseLinkLogo2.png");
-  background-size: 50%;
+  background-image: url("./Images/AdviseLinkLogo2.png");
+  background-size: 100%;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.9;
+  /* opacity: 0.9; */
 }
 
 .login-container {
-  background: white;
+  background: #ffffff;
   padding: 40px;
   border-radius: 12px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
@@ -55,30 +56,6 @@
 
 .logo-container {
   margin-bottom: 20px;
-}
-
-.logo {
-  width: 80px;
-  height: 80px;
-  background-color: #4285f4;
-  border-radius: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 40px;
-}
-
-h1 {
-  color: #4285f4;
-  font-size: 32px;
-  margin-bottom: 8px;
-}
-
-.subtitle {
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 30px;
 }
 
 .login-form {

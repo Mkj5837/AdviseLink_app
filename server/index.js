@@ -1,56 +1,64 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-const dotenv = require('dotenv');
-const UserModel = require('./Models/UserModel');
-const PostModel = require('./Models/PostModel');
-const bcrypt = require('bcrypt');
-
-dotenv.config();
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import UserModel from "./Models/UserModel.js";
+import PostModel from "./Models/PostModel.js";
+import bcrypt from "bcrypt";
 
 const app = express();
-
-// Middleware
-const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true
-};
-
-app.use(cors(corsOptions));
 app.use(express.json());
 
-// Database connection
-const connectString = process.env.MONGO_URI || 'mongodb://localhost:27017/adviselink';
+// Middleware
+app.use(cors());
+// const corsOptions = {
+//   origin: process.env.CLIENT_URL || "http://localhost:3000",
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   credentials: true,
+// };
 
-mongoose.connect(connectString)
-  .then(() => console.log('Connected to MongoDB'))
-  .catch((err) => console.error('MongoDB connection error:', err));
+// app.use(cors(corsOptions));
+
+// Database connection
+const connectString =
+  process.env.MONGO_URI ||
+  "mongodb+srv://admin:admin12345@adviselinkcluster.at1hxvj.mongodb.net/AdviseLink_application?retryWrites=true&w=majority&appName=AdviseLinkCluster";
+
+mongoose.connect(connectString, {
+  useNewUrlParser: true,
+
+  useUnifiedTopology: true,
+});
 
 // API Routes
 // Register User
-app.post("/api/auth/register", async (req, res) => {
+app.post("/registerUser", async (req, res) => {
   try {
-    const { name, email, password, role } = req.body;
-    
-    // Check if user already exists
-    const existingUser = await UserModel.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: "User already exists with this email" });
-    }
-    
+    const name = req.body.firstName;
+    const middleName = req.body.middleName;
+    const lastName = req.body.lastName;
+    const email = req.body.email;
+
+    const password = req.body.password;
+
+    const hashedpassword = await bcrypt.hash(password, 10);
+
     const user = new UserModel({
-      name,
-      email,
-      password, // Password will be hashed by the pre-save hook
-      role: role || 'user'
+      name: name,
+
+      email: email,
+
+      password: hashedpassword,
     });
 
     await user.save();
-    res.status(201).json({ user, message: "User registered successfully." });
+    res.send({ user: user, msg: "Added." });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error: "An error occurred" });
   }
+});
+
+app.listen(3001, () => {
+  console.log("Connected to server.");
 });
 
 // Login
@@ -83,13 +91,17 @@ app.post("/api/auth/logout", async (req, res) => {
 app.put("/api/users/profile", async (req, res) => {
   try {
     const { userId, updates } = req.body;
-    const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, { new: true });
-    
+    const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, {
+      new: true,
+    });
+
     if (!updatedUser) {
       return res.status(404).json({ error: "User not found" });
     }
-    
-    res.status(200).json({ user: updatedUser, message: "Profile updated successfully" });
+
+    res
+      .status(200)
+      .json({ user: updatedUser, message: "Profile updated successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -99,15 +111,15 @@ app.put("/api/users/profile", async (req, res) => {
 app.post("/api/posts", async (req, res) => {
   try {
     const { title, content, category, userId, tags } = req.body;
-    
+
     const post = new PostModel({
       title,
       content,
       category,
       userId,
-      tags: tags || []
+      tags: tags || [],
     });
-    
+
     await post.save();
     res.status(201).json({ post, message: "Post created successfully." });
   } catch (error) {
@@ -131,12 +143,12 @@ app.put("/api/posts/:postId/like", async (req, res) => {
   try {
     const { postId } = req.params;
     const { userId } = req.body;
-    
+
     const post = await PostModel.findById(postId);
     if (!post) {
       return res.status(404).json({ error: "Post not found" });
     }
-    
+
     const userLikedIndex = post.likes.users.indexOf(userId);
     if (userLikedIndex !== -1) {
       // Unlike
@@ -147,11 +159,11 @@ app.put("/api/posts/:postId/like", async (req, res) => {
       post.likes.count += 1;
       post.likes.users.push(userId);
     }
-    
+
     await post.save();
-    res.status(200).json({ 
-      post, 
-      message: userLikedIndex !== -1 ? "Post unliked" : "Post liked" 
+    res.status(200).json({
+      post,
+      message: userLikedIndex !== -1 ? "Post unliked" : "Post liked",
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

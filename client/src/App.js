@@ -13,22 +13,29 @@ import ProtectedRoute from "./Components/ProtectedRoute";
 import Register from "./Components/Register";
 import About from "./Components/About";
 import Home from "./Components/Home";
+import UserList from "./Components/UserList";
+import UpdateUser from "./Components/UpdateUser";
 
 const App = () => {
   return (
     <Container fluid>
       <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/student-dashboard" element={<StudentDashboard />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/" element={<Home />} />
-
-          {/* Protected routes with Layout
+        <Row>
+          <Header />
+        </Row>
+        <Row className="main">
+          <Routes>
+            {/* Public routes */}
+            <Route path="/" element={<Home />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
+            <Route path="/about" element={<About />} />
+            <Route path="/userlist" element={<UserList />} />
+            <Route path="/update/:email/:name/:password" element={<UpdateUser />} />
+            {/* Add this line */}
+            {/* Protected routes with Layout
         <Route
           path="/"
           element={
@@ -47,8 +54,11 @@ const App = () => {
             // </ProtectedRoute>
           }
         /> */}
-        </Routes>
-        <Footer />
+          </Routes>
+        </Row>
+        <Row>
+          <Footer />
+        </Row>
       </Router>
     </Container>
   );
