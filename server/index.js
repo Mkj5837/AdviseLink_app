@@ -2,7 +2,6 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import UserModel from "./Models/UserModel.js";
-import PostModel from "./Models/PostModel.js";
 import bcrypt from "bcrypt";
 
 const app = express();
@@ -21,11 +20,10 @@ app.use(cors());
 // Database connection
 const connectString =
   process.env.MONGO_URI ||
-  "mongodb+srv://admin:admin12345@adviselinkcluster.at1hxvj.mongodb.net/AdviseLink_application?retryWrites=true&w=majority&appName=AdviseLinkCluster";
+  "mongodb+srv://admin:admin12345@adviselinkcluster.bnfupja.mongodb.net/AdviseLinkDB?retryWrites=true&w=majority&appName=AdviseLinkCluster";
 
 mongoose.connect(connectString, {
   useNewUrlParser: true,
-
   useUnifiedTopology: true,
 });
 
@@ -33,54 +31,64 @@ mongoose.connect(connectString, {
 // Register User
 app.post("/registerUser", async (req, res) => {
   try {
-    const name = req.body.firstName;
-    const middleName = req.body.middleName;
-    const lastName = req.body.lastName;
+    const idNumber = req.body.idNumber;
+    const fname = req.body.firstName;
+    const Lname = req.body.lastName;
+    //const gender = req.body.gender;
     const email = req.body.email;
-
     const password = req.body.password;
-
+    const userType = req.body.userType;
+    const age = req.body.age;
+    const avatar = req.body.avatar;
     const hashedpassword = await bcrypt.hash(password, 10);
 
     const user = new UserModel({
-      name: name,
-
+      idNumber: idNumber,
+      firstName: fname,
+      lastName: Lname,
       email: email,
-
       password: hashedpassword,
+      userType: userType,
     });
 
     await user.save();
     res.send({ user: user, msg: "Added." });
   } catch (error) {
-    res.status(500).json({ error: "An error occurred" });
+    console.error(error);
+    res.status(500).json({ error: "An error occurred." });
   }
 });
 
-app.listen(3001, () => {
-  console.log("Connected to server.");
-});
-
-// Login
-app.post("/api/auth/login", async (req, res) => {
+//login
+app.post("/login", async (req, res) => {
   try {
+    console.log("Received body:", req.body);
     const { email, password } = req.body;
-    const user = await UserModel.findOne({ email });
-
+    console.log("Email from request:", email);
+    console.log("Password from request:", password);
+    //search the user
+    const user = await UserModel.findOne({ email }).select("+password");
+    //if not found
     if (!user) {
       return res.status(404).json({ error: "User not found." });
     }
-
-    const passwordMatch = await user.comparePassword(password);
+    console.log(`User with email ${user.email} attempted to log in.`);
+    console.log("Password from request:", password);
+    console.log("Password from DB:", user.password);
+    const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
-
-    res.status(200).json({ user, message: "Login successful." });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    //if everything is ok, send the user and message.
+    res.status(200).json({ user, message: "Login Success." });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
+
+// app.listen(3001, () => {
+//   console.log("Connected to server.");
+// });
 
 // Logout
 app.post("/api/auth/logout", async (req, res) => {
@@ -107,70 +115,7 @@ app.put("/api/users/profile", async (req, res) => {
   }
 });
 
-// Create Post
-app.post("/api/posts", async (req, res) => {
-  try {
-    const { title, content, category, userId, tags } = req.body;
-
-    const post = new PostModel({
-      title,
-      content,
-      category,
-      userId,
-      tags: tags || [],
-    });
-
-    await post.save();
-    res.status(201).json({ post, message: "Post created successfully." });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Get Posts
-app.get("/api/posts", async (req, res) => {
-  try {
-    const posts = await PostModel.find().sort({ createdAt: -1 });
-    const count = await PostModel.countDocuments();
-    res.status(200).json({ posts, count });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Like/Unlike Post
-app.put("/api/posts/:postId/like", async (req, res) => {
-  try {
-    const { postId } = req.params;
-    const { userId } = req.body;
-
-    const post = await PostModel.findById(postId);
-    if (!post) {
-      return res.status(404).json({ error: "Post not found" });
-    }
-
-    const userLikedIndex = post.likes.users.indexOf(userId);
-    if (userLikedIndex !== -1) {
-      // Unlike
-      post.likes.count -= 1;
-      post.likes.users.pull(userId);
-    } else {
-      // Like
-      post.likes.count += 1;
-      post.likes.users.push(userId);
-    }
-
-    await post.save();
-    res.status(200).json({
-      post,
-      message: userLikedIndex !== -1 ? "Post unliked" : "Post liked",
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000; // use 4000 or any free port
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

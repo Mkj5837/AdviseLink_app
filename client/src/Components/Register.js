@@ -8,6 +8,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useSelector, useDispatch } from "react-redux";
 import { useState } from "react";
 import { addUser } from "../Features/userSlice";
+import { registerUser } from "../Features/userSlice";
+import { useEffect } from "react";
 
 const Register = () => {
   //Retrieve the current value of the state and assign it to a variable.
@@ -54,7 +56,7 @@ const Register = () => {
       };
       console.log("Form submitted:", data);
       alert("Validation all good.");
-      dispatch(addUser(userData)); //use the useDispatch hook to dispatch an action, passing as parameter the userData
+      dispatch(registerUser(userData)); //use the useDispatch hook to dispatch an action.
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);

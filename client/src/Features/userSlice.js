@@ -5,6 +5,7 @@ import axios from "axios";
 // Initial state
 const initialState = { value: UsersData };
 console.log(initialState);
+
 // const initialState = {
 //   profile: null,
 //   advisees: [],
@@ -15,66 +16,29 @@ console.log(initialState);
 // API base URL
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
-// Get user profile
-export const getUserProfile = createAsyncThunk(
-  "user/getProfile",
-  async (userId, { rejectWithValue, getState }) => {
+export const registerUser = createAsyncThunk(
+  "users/registerUser",
+  async (userData) => {
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/api/users/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      //sends a POST request to the server along the request body object
+      const response = await axios.post("http://localhost:3001/registerUser", {
+        idNumber: userData.idNumber,
+        firstName: userData.firstName,
+        middleName: userData.middleName,
+        lastName: userData.lastName,
+        age: userData.age,
+        gender: userData.gender,
+        email: userData.email,
+        password: userData.password,
+        confirmPassword: userData.confirmPassword,
+        userType: userData.userType,
+        // avatar: userData.avatar,
       });
-      return response.data;
+      console.log(response);
+      const user = response.data.user; //retrieve the response from the server
+      return user; //return the response from the server as payload to the thunk
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch user profile"
-      );
-    }
-  }
-);
-
-// Update user profile
-export const updateUserProfile = createAsyncThunk(
-  "user/updateProfile",
-  async (userData, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.put(
-        `${API_URL}/api/users/${userData.id}`,
-        userData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to update profile"
-      );
-    }
-  }
-);
-
-// Get advisees list (for advisors)
-export const getAdviseesList = createAsyncThunk(
-  "user/getAdvisees",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      const response = await axios.get(`${API_URL}/api/users/advisees`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.error || "Failed to fetch advisees"
-      );
+      console.log(error);
     }
   }
 );
@@ -88,8 +52,8 @@ export const userSlice = createSlice({
       state.error = null;
     },
     resetUserState: (state) => {
-      state.profile = null;
-      state.advisees = [];
+      // state.profile = null;
+      // state.advisees = [];
       state.loading = false;
       state.error = null;
     },
@@ -109,7 +73,11 @@ export const userSlice = createSlice({
       if (Array.isArray(state.value)) {
         state.value = state.value.map((user) =>
           user.email === action.payload.email
-            ? { ...user, name: action.payload.name, password: action.payload.password }
+            ? {
+                ...user,
+                name: action.payload.name,
+                password: action.payload.password,
+              }
             : user
         );
       }
@@ -118,41 +86,16 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       // Get user profile cases
-      .addCase(getUserProfile.pending, (state) => {
+      .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getUserProfile.fulfilled, (state, action) => {
+      .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.profile = action.payload;
-      })
-      .addCase(getUserProfile.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Update user profile cases
-      .addCase(updateUserProfile.pending, (state) => {
-        state.loading = true;
         state.error = null;
+        state.user = action.payload;
       })
-      .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.loading = false;
-        state.profile = action.payload;
-      })
-      .addCase(updateUserProfile.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Get advisees list cases
-      .addCase(getAdviseesList.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(getAdviseesList.fulfilled, (state, action) => {
-        state.loading = false;
-        state.advisees = action.payload;
-      })
-      .addCase(getAdviseesList.rejected, (state, action) => {
+      .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
@@ -160,6 +103,11 @@ export const userSlice = createSlice({
 });
 
 // Export actions and reducer
-export const { clearUserError, resetUserState, addUser, deleteUser, updateUser} =
-  userSlice.actions;
+export const {
+  clearUserError,
+  resetUserState,
+  addUser,
+  deleteUser,
+  updateUser,
+} = userSlice.actions;
 export default userSlice.reducer;

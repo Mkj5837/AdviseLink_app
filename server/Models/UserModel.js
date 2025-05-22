@@ -17,12 +17,31 @@ const UserSchema = mongoose.Schema({
     minlength: 2,
     maxlength: 30,
   },
+  middleName: {
+    type: String,
+    required: false,
+    trim: true,
+    minlength: 2,
+    maxlength: 30,
+  },
   lastName: {
     type: String,
     required: true,
     trim: true,
     minlength: 2,
     maxlength: 30,
+  },
+  age: {
+    type: Number,
+    required: false,
+    min: 1,
+    max: 120,
+  },
+  gender: {
+    type: String,
+    required: true,
+    enum: ["male", "female", "null"],
+    default: "null",
   },
   email: {
     type: String,
@@ -43,25 +62,15 @@ const UserSchema = mongoose.Schema({
     required: false, // Not stored, only for validation on client
     select: false,
   },
-  role: {
+  userType: {
     type: String,
-    enum: ["user", "admin", "advisor"],
-    default: "user",
+    enum: ["student", "admin", "advisor"],
+    default: "student",
   },
-  age: {
-    type: Number,
-    required: true,
-    min: 1,
-    max: 120,
-  },
-  avatar: {
-    type: String,
-    default: "",
-  },
-  token: {
-    type: String,
-    default: "",
-  },
+  // avatar: {
+  //   type: String,
+  //   default: "https://example.com/default-avatar.png", // Default avatar URL
+  // },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -72,6 +81,6 @@ const UserSchema = mongoose.Schema({
   },
 });
 
-const UserModel = mongoose.model("Users", UserSchema);
+const UserModel = mongoose.model("users", UserSchema);
 
 export default UserModel;
