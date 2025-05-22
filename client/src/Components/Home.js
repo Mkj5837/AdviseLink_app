@@ -6,8 +6,18 @@ import Footer from "./Footer";
 import logo1 from "../Images/AdviseLinkLogo1.png";
 import logo2 from "../Images/AdviseLinkLogo2.png";
 import Logo from "./Logo";
-
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 const Home = () => {
+  const user = useSelector((state) => state.user.value);
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
   return (
     <div className="home-page">
       <Header />

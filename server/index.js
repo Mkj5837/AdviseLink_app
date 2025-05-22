@@ -3,32 +3,66 @@ import mongoose from "mongoose";
 import cors from "cors";
 import UserModel from "./Models/UserModel.js";
 import bcrypt from "bcrypt";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
+import * as ENV from "./config.js";
 
 const app = express();
 app.use(express.json());
 
 // Middleware
-app.use(cors());
-// const corsOptions = {
-//   origin: process.env.CLIENT_URL || "http://localhost:3000",
-//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-//   credentials: true,
-// };
+const corsOptions = {
+  origin: ENV.CLIENT_URL, // client URL from environment variable
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  credentials: true, // Enable credentials (cookies, authorization headers, etc.)
+};
 
-// app.use(cors(corsOptions));
+app.use(cors(corsOptions));
 
 // Database connection
 const connectString =
   process.env.MONGO_URI ||
-  "mongodb+srv://admin:admin12345@adviselinkcluster.bnfupja.mongodb.net/AdviseLinkDB?retryWrites=true&w=majority&appName=AdviseLinkCluster";
+  `mongodb+srv://${ENV.DB_USER}:${ENV.DB_PASSWORD}@${ENV.DB_CLUSTER}/${ENV.DB_NAME}?retryWrites=true&w=majority&appName=AdviseLinkCluster`;
 
 mongoose.connect(connectString, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
 
-// API Routes
-// Register User
+// Ensure uploads directory exists
+const uploadDir = "uploads";
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir);
+}
+
+// Set up multer for file storage
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads/"); // Specify the directory to save uploaded files
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + "-" + file.originalname); // Unique filename
+  },
+});
+
+//create multer instance
+const upload = multer({ storage: storage });
+
+//convert the URL of the current module to a file path
+const __filename = fileURLToPath(import.meta.url);
+
+//get the directory name from the current file path
+const __dirname = dirname(__filename);
+
+//set up middleware to serve static files from the 'uploads' directory
+//requests to '/uploads' will serve files from the local 'uploads' folder
+app.use("/uploads", express.static(__dirname + "/uploads"));
+
+//API Routes
+//register User
 app.post("/registerUser", async (req, res) => {
   try {
     const idNumber = req.body.idNumber;
@@ -49,6 +83,7 @@ app.post("/registerUser", async (req, res) => {
       email: email,
       password: hashedpassword,
       userType: userType,
+      profilePic: req.body.profilePic,
     });
 
     await user.save();
@@ -59,11 +94,13 @@ app.post("/registerUser", async (req, res) => {
   }
 });
 
-//login
+//login api
 app.post("/login", async (req, res) => {
   try {
     console.log("Received body:", req.body);
-    const { email, password } = req.body;
+    const email = req.body.email;
+    const password = req.body.password;
+    console.log("Email from request:", email);
     console.log("Email from request:", email);
     console.log("Password from request:", password);
     //search the user
@@ -86,25 +123,43 @@ app.post("/login", async (req, res) => {
   }
 });
 
-// app.listen(3001, () => {
-//   console.log("Connected to server.");
-// });
-
-// Logout
-app.post("/api/auth/logout", async (req, res) => {
+//logout api
+app.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
 // Update Profile
-app.put("/api/users/profile", async (req, res) => {
+app.put("/api/users/profile", upload.single("profilePic"), async (req, res) => {
   try {
     const { userId, updates } = req.body;
+
+    // Find the user first
+    const user = await UserModel.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // If a new file was uploaded
+    if (req.file) {
+      // If user already has a profilePic, delete the old file
+      if (user.profilePic) {
+        const oldPicPath = path.join("uploads", user.profilePic);
+        if (fs.existsSync(oldPicPath)) {
+          fs.unlinkSync(oldPicPath);
+        }
+      }
+      // Set the new profilePic filename in updates
+      updates.profilePic = req.file.filename;
+    }
+
+    // Update the user
     const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, {
       new: true,
     });
 
     if (!updatedUser) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "User not found after update" });
     }
 
     res
@@ -115,7 +170,70 @@ app.put("/api/users/profile", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 4000; // use 4000 or any free port
+// Update User Profile by Email
+app.put(
+  "/updateUserProfile/:email",
+  upload.single("profilePic"),
+  async (req, res) => {
+    const email = req.params.email;
+    const { firstName, middleName, lastName, password } = req.body;
+
+    try {
+      // Find the user by email in the database
+      const userToUpdate = await UserModel.findOne({ email: email });
+
+      // If the user is not found, return a 404 error
+      if (!userToUpdate) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      // Check if a file was uploaded and get the filename
+      if (req.file) {
+        const profilePic = req.file.filename;
+        // Delete old profile picture if it exists
+        if (userToUpdate.profilePic) {
+          const oldFilePath = path.join("uploads", userToUpdate.profilePic);
+          if (fs.existsSync(oldFilePath)) {
+            fs.unlink(oldFilePath, (err) => {
+              if (err) {
+                console.error("Error deleting file:", err);
+              } else {
+                console.log("Old file deleted successfully");
+              }
+            });
+          }
+        }
+        userToUpdate.profilePic = profilePic; // Set new profile picture filename
+      }
+
+      // Update user's name fields
+      userToUpdate.firstName = firstName;
+      userToUpdate.middleName = middleName;
+      userToUpdate.lastName = lastName;
+
+      // Hash the new password and update if it has changed
+      if (password && password !== userToUpdate.password) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        userToUpdate.password = hashedPassword;
+      }
+
+      // Save the updated user information to the database
+      await userToUpdate.save();
+
+      // Send the updated user data and a success message as a response
+      res.send({ user: userToUpdate, msg: "Updated." });
+    } catch (err) {
+      // Handle any errors during the update process
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+// app.listen(3001, () => {
+//   console.log("Connected to server.");
+// });
+
+const PORT = ENV.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

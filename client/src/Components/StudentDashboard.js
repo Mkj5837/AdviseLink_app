@@ -1,8 +1,20 @@
 import React from "react";
 import "../StudentDashboard.css";
 import logo from "../Images/AdviseLinkLogo.png";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const StudentDashboard = () => {
+  const user = useSelector((state) => state.user.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
   const studentInfo = {
     name: "George Washington",
     id: "16j21114",

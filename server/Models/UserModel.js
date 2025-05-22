@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
 
-const UserSchema = mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   idNumber: {
     type: String,
     required: true,
@@ -67,10 +66,7 @@ const UserSchema = mongoose.Schema({
     enum: ["student", "admin", "advisor"],
     default: "student",
   },
-  // avatar: {
-  //   type: String,
-  //   default: "https://example.com/default-avatar.png", // Default avatar URL
-  // },
+  profilePic: { type: String }, // <-- Add this line
   createdAt: {
     type: Date,
     default: Date.now,
@@ -81,6 +77,6 @@ const UserSchema = mongoose.Schema({
   },
 });
 
-const UserModel = mongoose.model("users", UserSchema);
+const UserModel = mongoose.model("User", UserSchema);
 
 export default UserModel;

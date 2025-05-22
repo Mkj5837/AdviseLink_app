@@ -1,20 +1,13 @@
 import React from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { addUser, deleteUser } from "../Features/userSlice";
-import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 const UserList = () => {
-  const dispatch = useDispatch();
-  const userList = useSelector((state) => state.user.value);
-
-  const handleDelete = (email) => {
-    dispatch(deleteUser(email));
-  };
+  const users = useSelector((state) => state.user.users); // Adjust according to your state
 
   return (
     <div className="user-list-container">
       <h2>User List</h2>
-      <table className="user-list-table">
+      <table>
         <thead>
           <tr>
             <th>ID Number</th>
@@ -23,13 +16,12 @@ const UserList = () => {
             <th>Gender</th>
             <th>Email</th>
             <th>User Type</th>
-            <th>Action</th>
           </tr>
         </thead>
         <tbody>
-          {userList && userList.length > 0 ? (
-            userList.map((user, idx) => (
-              <tr key={idx}>
+          {users && users.length > 0 ? (
+            users.map((user) => (
+              <tr key={user.idNumber}>
                 <td>{user.idNumber}</td>
                 <td>
                   {user.firstName} {user.middleName} {user.lastName}
@@ -38,25 +30,11 @@ const UserList = () => {
                 <td>{user.gender}</td>
                 <td>{user.email}</td>
                 <td>{user.userType}</td>
-                <td>
-                  <button
-                    onClick={() => handleDelete(user.email)}
-                    className="delete-btn"
-                  >
-                    Delete
-                  </button>
-                  <Link
-                    to={`/update/${user.email}/${user.firstName} ${user.middleName} ${user.lastName}/${user.password}`}
-                    style={{ marginLeft: "8px" }}
-                  >
-                    <button className="update-btn">Update User</button>
-                  </Link>
-                </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="7">No users found.</td>
+              <td colSpan="6">No users found.</td>
             </tr>
           )}
         </tbody>

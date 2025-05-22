@@ -1,28 +1,27 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { combineReducers } from "redux";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
 import authReducer from "../Features/authSlice";
 import userReducer from "../Features/userSlice";
 import messageReducer from "../Features/messagesSlice";
+import { persistStore, persistReducer } from "redux-persist";
+import storage from "redux-persist/lib/storage"; // Uses localStorage by default
 
 // Initial reducers
 const initialReducers = {
-  auth: authReducer,
+  // auth: authReducer,
   user: userReducer,
-  messages: messageReducer,
+  // messages: messageReducer,
 };
 
 const persistConfig = {
-  key: "root",
-  storage,
-  whitelist: ["auth"], // Only persist auth state
+  key: "reduxstore", // The key to identify the persisted state in storage
+  storage, // The storage method (localStorage)
 };
 
 const rootReducer = combineReducers(initialReducers);
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-export const store = configureStore({
+const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -30,4 +29,6 @@ export const store = configureStore({
     }),
 });
 
-export const persistor = persistStore(store);
+const persistore = persistStore(store); // Create persistore for rehydration
+
+export { store, persistore };

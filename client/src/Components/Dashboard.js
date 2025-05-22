@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import "../Dashboard.css";
 import WelcomeCard from "./WelcomeCard";
 import RequestsSection from "./Requests";
@@ -7,6 +9,17 @@ import logo from "../Images/AdviseLinkLogo.png";
 import stud1 from "../Images/studImge.jpg";
 
 const Dashboard = () => {
+  const user = useSelector((state) => state.user.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  console.log("Current user:", user);
+
   return (
     <div className="dashboard-container">
       <div className="sidebar">

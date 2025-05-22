@@ -2,32 +2,16 @@ import React from "react";
 import "../Register.css";
 import { useNavigate } from "react-router-dom";
 import { userSchemaValidation } from "../Validation/UserValidation";
-import * as yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useSelector, useDispatch } from "react-redux";
-import { useState } from "react";
-import { addUser } from "../Features/userSlice";
 import { registerUser } from "../Features/userSlice";
-import { useEffect } from "react";
 
 const Register = () => {
-  //Retrieve the current value of the state and assign it to a variable.
+  // Retrieve the current value of the state and assign it to a variable.
   const userList = useSelector((state) => state.user.value);
 
-  //Create the state variables
-  const [idNumber, setIdNumber] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [middleName, setMiddleName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [age, setAge] = useState("");
-  const [gender, setGender] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [userType, setUserType] = useState("");
-
-  //Create the navigate dispatch function hooks
+  // Create the navigate and dispatch function hooks
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -41,7 +25,6 @@ const Register = () => {
 
   const onSubmit = async (data) => {
     try {
-      // Add your API call here
       const userData = {
         idNumber: data.idNumber,
         firstName: data.firstName,
@@ -56,7 +39,7 @@ const Register = () => {
       };
       console.log("Form submitted:", data);
       alert("Validation all good.");
-      dispatch(registerUser(userData)); //use the useDispatch hook to dispatch an action.
+      dispatch(registerUser(userData));
       navigate("/login");
     } catch (error) {
       console.error("Registration error:", error);
@@ -66,11 +49,7 @@ const Register = () => {
   return (
     <div className="container">
       <div className="register-container">
-        <div className="logo-container">
-          {/* <div className="logo">
-            <i className="fas fa-graduation-cap"></i>
-          </div> */}
-        </div>
+        <div className="logo-container"></div>
 
         <h1>Registration Form</h1>
 
@@ -78,10 +57,7 @@ const Register = () => {
           <div className="form-group">
             <input
               type="text"
-              {...register("idNumber", {
-                value: idNumber,
-                onChange: (e) => setIdNumber(e.target.value),
-              })}
+              {...register("idNumber")}
               placeholder="Student/Employee ID"
             />
             {errors.idNumber && (
@@ -92,10 +68,7 @@ const Register = () => {
           <div className="form-group">
             <input
               type="text"
-              {...register("firstName", {
-                value: firstName,
-                onChange: (e) => setFirstName(e.target.value),
-              })}
+              {...register("firstName")}
               placeholder="First Name"
             />
             {errors.firstName && (
@@ -106,10 +79,7 @@ const Register = () => {
           <div className="form-group">
             <input
               type="text"
-              {...register("middleName", {
-                value: middleName,
-                onChange: (e) => setMiddleName(e.target.value),
-              })}
+              {...register("middleName")}
               placeholder="Middle Name"
             />
             {errors.middleName && (
@@ -120,10 +90,7 @@ const Register = () => {
           <div className="form-group">
             <input
               type="text"
-              {...register("lastName", {
-                value: lastName,
-                onChange: (e) => setLastName(e.target.value),
-              })}
+              {...register("lastName")}
               placeholder="Last Name"
             />
             {errors.lastName && (
@@ -132,14 +99,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <input
-              type="number"
-              {...register("age", {
-                value: age,
-                onChange: (e) => setAge(e.target.value),
-              })}
-              placeholder="Age"
-            />
+            <input type="number" {...register("age")} placeholder="Age" />
             {errors.age && <span className="error">{errors.age.message}</span>}
           </div>
 
@@ -147,27 +107,11 @@ const Register = () => {
             <label>Gender</label>
             <div className="gender-options">
               <label>
-                <input
-                  type="radio"
-                  value="male"
-                  {...register("gender", {
-                    value: gender,
-                    onChange: (e) => setGender(e.target.value),
-                  })}
-                  checked={gender === "male"}
-                />
+                <input type="radio" value="male" {...register("gender")} />
                 Male
               </label>
               <label>
-                <input
-                  type="radio"
-                  value="female"
-                  {...register("gender", {
-                    value: gender,
-                    onChange: (e) => setGender(e.target.value),
-                  })}
-                  checked={gender === "female"}
-                />
+                <input type="radio" value="female" {...register("gender")} />
                 Female
               </label>
             </div>
@@ -177,14 +121,7 @@ const Register = () => {
           </div>
 
           <div className="form-group">
-            <input
-              type="email"
-              {...register("email", {
-                value: email,
-                onChange: (e) => setEmail(e.target.value),
-              })}
-              placeholder="Email"
-            />
+            <input type="email" {...register("email")} placeholder="Email" />
             {errors.email && (
               <span className="error">{errors.email.message}</span>
             )}
@@ -193,10 +130,7 @@ const Register = () => {
           <div className="form-group">
             <input
               type="password"
-              {...register("password", {
-                value: password,
-                onChange: (e) => setPassword(e.target.value),
-              })}
+              {...register("password")}
               placeholder="Password"
             />
             {errors.password && (
@@ -207,10 +141,7 @@ const Register = () => {
           <div className="form-group">
             <input
               type="password"
-              {...register("confirmPassword", {
-                value: confirmPassword,
-                onChange: (e) => setConfirmPassword(e.target.value),
-              })}
+              {...register("confirmPassword")}
               placeholder="Confirm Password"
             />
             {errors.confirmPassword && (
@@ -222,27 +153,11 @@ const Register = () => {
             <label>Type of User</label>
             <div className="user-type-options">
               <label>
-                <input
-                  type="radio"
-                  value="student"
-                  {...register("userType", {
-                    value: userType,
-                    onChange: (e) => setUserType(e.target.value),
-                  })}
-                  checked={userType === "student"}
-                />
+                <input type="radio" value="student" {...register("userType")} />
                 Student
               </label>
               <label>
-                <input
-                  type="radio"
-                  value="advisor"
-                  {...register("userType", {
-                    value: userType,
-                    onChange: (e) => setUserType(e.target.value),
-                  })}
-                  checked={userType === "advisor"}
-                />{" "}
+                <input type="radio" value="advisor" {...register("userType")} />
                 Advisor
               </label>
             </div>
