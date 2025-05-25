@@ -3,7 +3,6 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import "../Dashboard.css";
 import WelcomeCard from "./WelcomeCard";
-import RequestsSection from "./Requests";
 import AdviseesList from "./AdviseeList";
 import logo from "../Images/AdviseLinkLogo.png";
 import stud1 from "../Images/studImge.jpg";
@@ -89,7 +88,7 @@ const Dashboard = () => {
           </div>
 
           <div className="dashboard-sections">
-            <RequestsSection />
+          
             <AdviseesList />
           </div>
         </div>

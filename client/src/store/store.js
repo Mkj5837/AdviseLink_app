@@ -1,8 +1,6 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { combineReducers } from "redux";
-import authReducer from "../Features/authSlice";
 import userReducer from "../Features/userSlice";
-import messageReducer from "../Features/messagesSlice";
 import { persistStore, persistReducer } from "redux-persist";
 import storage from "redux-persist/lib/storage"; // Uses localStorage by default
 
