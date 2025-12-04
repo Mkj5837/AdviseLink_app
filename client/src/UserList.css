@@ -1,0 +1,72 @@
+.user-list-container {
+  padding: 32px 16px;
+  background: #fff;
+  border-radius: 8px;
+  max-width: 900px;
+  margin: 40px auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+.user-list-container h2 {
+  margin-bottom: 24px;
+  text-align: center;
+  color: #333;
+}
+
+.user-list-container table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fafbfc;
+}
+
+.user-list-container th,
+.user-list-container td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+}
+
+.user-list-container th {
+  background: #f0f4f8;
+  color: #222;
+  font-weight: 600;
+}
+
+.user-list-container tr:hover {
+  background: #f5f7fa;
+}
+
+.user-list-container td {
+  color: #444;
+}
+
+.user-list-container tr:last-child td {
+  border-bottom: none;
+}
+
+.edit-btn,
+.delete-btn {
+  padding: 6px 12px;
+  margin: 0 4px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.edit-btn {
+  background: #4caf50;
+  color: white;
+}
+
+.delete-btn {
+  background: #f44336;
+  color: white;
+}
+
+.edit-btn:hover {
+  background: #45a049;
+}
+
+.delete-btn:hover {
+  background: #da190b;
+}

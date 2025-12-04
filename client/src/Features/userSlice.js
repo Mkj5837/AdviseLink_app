@@ -106,7 +106,20 @@ export const updateUserProfile = createAsyncThunk(
     }
   }
 );
-
+//Fetch Users Thunk
+export const fetchUsers = createAsyncThunk(
+  "users/fetchUsers",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(`${SERVER_URL}/users`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch users"
+      );
+    }
+  }
+);
 // Create the slice
 export const userSlice = createSlice({
   name: "users",
@@ -149,6 +162,10 @@ export const userSlice = createSlice({
       state.isSuccess = false;
       state.isError = false;
     },
+    // fetchUsers: (state, action) => {
+    //   // This reducer is not used in the async thunk, but can be used to set users in the state
+    //   state.value = action.payload;
+    // },
   },
   extraReducers: (builder) => {
     builder
@@ -205,7 +222,23 @@ export const userSlice = createSlice({
       .addCase(logout.rejected, (state) => {
         state.isLoading = false;
         state.isError = true;
-      });
+      })
+
+   // Fetch users cases
+    //cases for fetchUsers
+    .addCase(fetchUsers.pending, (state) => {
+      state.loading = true;
+      state.error = null;
+    })
+    .addCase(fetchUsers.fulfilled, (state, action) => {
+      state.loading = false;
+      state.users = action.payload;
+      state.error = null;
+    })
+    .addCase(fetchUsers.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
   },
 });
 
@@ -216,5 +249,6 @@ export const {
   addUser,
   deleteUser,
   updateUser,
+
 } = userSlice.actions;
 export default userSlice.reducer;
