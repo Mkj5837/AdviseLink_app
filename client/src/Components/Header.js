@@ -5,9 +5,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../Features/userSlice";
 
 const Header = () => {
-  const dispatch = useDispatch(); // Declare dispatch
-  const navigate = useNavigate(); // Declare navigate
-
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
   // Define handleLogout function
   const handleLogout = () => {
     dispatch(logout());
@@ -24,11 +23,11 @@ const Header = () => {
             </p>
           </NavItem>
           <NavItem>
-            <Link to="/">Home</Link>
+            <Link to="/login">Home</Link>
           </NavItem>
 
           <NavItem>
-            <Link to="#">Profile</Link>
+            <Link to="/profile">Profile</Link>
           </NavItem>
 
           <NavItem>

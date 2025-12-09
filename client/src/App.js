@@ -37,8 +37,8 @@ const App = () => {
       <main className="content-area">
         <Routes>
           {/* Public routes */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
+          {/* <Route path="/" element={<Home />} /> */}
+          <Route path="/" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/student-dashboard" element={<StudentDashboard />} />

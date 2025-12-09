@@ -7,8 +7,7 @@ const About = () => {
       name: "Zamzam Tabook",
       role: "Backend developer",
       social: {
-        facebook: "#",
-        github: "#",
+        github: "@annie",
         linkedin: "#",
       },
     },
@@ -16,8 +15,7 @@ const About = () => {
       name: "Malak Al-Jabri",
       role: "Frontend Developer",
       social: {
-        facebook: "#",
-        github: "#",
+        github: "@Mkj5837",
         linkedin: "#",
       },
     },
@@ -42,9 +40,6 @@ const About = () => {
                 <h3>{member.name}</h3>
                 <p className="role">{member.role}</p>
                 <div className="social-links">
-                  <a href={member.social.facebook} aria-label="Facebook">
-                    <i className="fab fa-facebook"></i>
-                  </a>
                   <a href={member.social.github} aria-label="GitHub">
                     <i className="fab fa-github"></i>
                   </a>
@@ -65,13 +60,13 @@ const About = () => {
         <div className="about-text">
           <h2>About Us</h2>
           <p>
-            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum
-            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum
-            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum.
+            Zamzam Tabook is a backend developer who is passionate about
+            creating robust and scalable server-side applications.
           </p>
           <p>
-            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum
-            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum.
+            Malak Al-Jabri is a frontend developer who is passionate about
+            creating beautiful and functional user interfaces and is quite a
+            perfectionist.
           </p>
         </div>
       </div>

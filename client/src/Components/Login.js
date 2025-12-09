@@ -4,8 +4,10 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../Features/userSlice";
 import "../Login.css";
 import { Container } from "reactstrap";
+import Register from "./Register";
 
 const Login = () => {
+  //the needed vars
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -41,24 +43,30 @@ const Login = () => {
           <form className="login-form" onSubmit={handleSubmit}>
             <p className="sign-in-text">Sign in with email</p>
             <div className="form-group">
-              <label htmlFor="email">E-mail</label>
+              <label>E-mail</label>
               <input
                 type="email"
                 id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
                 placeholder="Example@gmail.com"
+                {...Register("email", {
+                  onchange: (e) => setEmail(e.target.value),
+                  required: true,
+                  value: email,
+                })}
               />
             </div>
             <div className="form-group">
-              <label htmlFor="password">Password</label>
+              <label>Password</label>
               <div className="password-input-container">
                 <input
                   type={showPassword ? "text" : "password"}
                   id="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   placeholder="********"
+                  {...Register("password", {
+                    onchange: (e) => setPassword(e.target.value),
+                    required: true,
+                    value: password,
+                  })}
                 />
                 <button
                   type="button"
