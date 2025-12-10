@@ -1,16 +1,17 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import './Layout.css';
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import "./Layout.css";
 
 const Layout = ({ children }) => {
+  //vars
   const navigate = useNavigate();
 
   const handleLogout = () => {
     // Clear user data from localStorage
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
     // Redirect to login
-    navigate('/login');
+    navigate("/login");
   };
 
   return (
@@ -18,10 +19,14 @@ const Layout = ({ children }) => {
       <header className="main-header">
         <div className="header-content">
           <div className="logo-section">
-            <img src="/adviselink-logo.png" alt="AdviseLink" className="header-logo" />
+            <img
+              src="/adviselink-logo.png"
+              alt="AdviseLink Logo"
+              className="header-logo"
+            />
             <h1>AdviseLink</h1>
           </div>
-          
+
           <nav className="main-nav">
             <Link to="/dashboard">Dashboard</Link>
             <Link to="/about">About Us</Link>
@@ -35,9 +40,7 @@ const Layout = ({ children }) => {
         </div>
       </header>
 
-      <main className="main-content">
-        {children}
-      </main>
+      <main className="main-content">{children}</main>
     </div>
   );
 };

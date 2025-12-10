@@ -13,7 +13,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
+    if(!user){
       navigate("/login");
     }
   }, [user, navigate]);
@@ -27,8 +27,7 @@ const Dashboard = () => {
           <img src={logo} alt="AdviseLink" className="dashboard-logo" />
           <span>AdviseLink</span>
         </div>
-        {/* sidebar end. */}
-
+        {/* sidebar end. */} 
         <nav className="sidebar-nav">
           <a href="#" className="nav-item active">
             <i className="fas fa-home"></i>
