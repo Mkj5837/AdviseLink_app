@@ -7,7 +7,8 @@ const About = () => {
       name: "Zamzam Tabook",
       role: "Backend developer",
       social: {
-        github: "@annie",
+        facebook: "#",
+        github: "#",
         linkedin: "#",
       },
     },
@@ -15,7 +16,8 @@ const About = () => {
       name: "Malak Al-Jabri",
       role: "Frontend Developer",
       social: {
-        github: "@Mkj5837",
+        facebook: "#",
+        github: "#",
         linkedin: "#",
       },
     },
@@ -40,6 +42,9 @@ const About = () => {
                 <h3>{member.name}</h3>
                 <p className="role">{member.role}</p>
                 <div className="social-links">
+                  <a href={member.social.facebook} aria-label="Facebook">
+                    <i className="fab fa-facebook"></i>
+                  </a>
                   <a href={member.social.github} aria-label="GitHub">
                     <i className="fab fa-github"></i>
                   </a>
@@ -60,13 +65,13 @@ const About = () => {
         <div className="about-text">
           <h2>About Us</h2>
           <p>
-            Zamzam Tabook is a backend developer who is passionate about
-            creating robust and scalable server-side applications.
+            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum
+            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum
+            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum.
           </p>
           <p>
-            Malak Al-Jabri is a frontend developer who is passionate about
-            creating beautiful and functional user interfaces and is quite a
-            perfectionist.
+            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum
+            LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum LoremIpsum.
           </p>
         </div>
       </div>

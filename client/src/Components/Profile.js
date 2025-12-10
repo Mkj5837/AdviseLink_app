@@ -7,7 +7,6 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { userSchemaValidation } from "../Validation/UserValidation";
 import { updateUserProfile } from "../Features/userSlice";
-import Register from "./Register";
 
 const Profile = () => {
   // Retrieve user details from Redux store
@@ -141,7 +140,7 @@ const Profile = () => {
                   <label>Email</label>
                   <input
                     type="email"
-                    {...Register("email")}
+                    {...register("email")}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
@@ -153,7 +152,7 @@ const Profile = () => {
                   <label>First Name</label>
                   <input
                     type="text"
-                    {...Register("firstName")}
+                    {...register("firstName")}
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
                   />
@@ -165,7 +164,7 @@ const Profile = () => {
                   <label>Middle Name</label>
                   <input
                     type="text"
-                    {...Register("middleName")}
+                    {...register("middleName")}
                     value={middleName}
                     onChange={(e) => setMiddleName(e.target.value)}
                   />
@@ -177,7 +176,7 @@ const Profile = () => {
                   <label>Last Name</label>
                   <input
                     type="text"
-                    {...Register("lastName")}
+                    {...register("lastName")}
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
                   />
@@ -189,7 +188,7 @@ const Profile = () => {
                   <label>Password</label>
                   <input
                     type="password"
-                    {...Register("password")}
+                    {...register("password")}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />

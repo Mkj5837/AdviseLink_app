@@ -10,10 +10,8 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 const Home = () => {
-  //vars
-  const navigate = useNavigate();
   const user = useSelector((state) => state.user.value);
-
+  const navigate = useNavigate();
   useEffect(() => {
     if (!user) {
       navigate("/login");
@@ -46,7 +44,7 @@ const Home = () => {
           <Col md={6}>
             <img
               src={logo1}
-              alt="Academic Advising Logo"
+              alt="Academic Advising"
               className="img-fluid rounded"
             />
           </Col>

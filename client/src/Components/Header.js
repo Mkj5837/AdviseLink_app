@@ -5,8 +5,9 @@ import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../Features/userSlice";
 
 const Header = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const dispatch = useDispatch(); // Declare dispatch
+  const navigate = useNavigate(); // Declare navigate
+
   // Define handleLogout function
   const handleLogout = () => {
     dispatch(logout());
@@ -22,13 +23,12 @@ const Header = () => {
               <img src={logo} className="logo" alt="AdviseLink Logo" />
             </p>
           </NavItem>
-          
           <NavItem>
-            <Link to="/login">Home</Link>
+            <Link to="/">Home</Link>
           </NavItem>
 
           <NavItem>
-            <Link to="/profile">Profile</Link>
+            <Link to="#">Profile</Link>
           </NavItem>
 
           <NavItem>
