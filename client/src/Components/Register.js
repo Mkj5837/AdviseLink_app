@@ -1,7 +1,7 @@
 import React from "react";
-import "../Register.css";
+import "../css/Register.css";
 import { useNavigate } from "react-router-dom";
-import { userSchemaValidation } from "../Validation/UserValidation";
+import { userSchemaValidation } from "../Validations/UserValidation";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useSelector, useDispatch } from "react-redux";
@@ -10,6 +10,7 @@ import { registerUser } from "../Features/userSlice";
 const Register = () => {
   // Retrieve the current value of the state and assign it to a variable.
   const userList = useSelector((state) => state.user.value);
+  console.log('User List:', userList);
 
   // Create the navigate and dispatch function hooks
   const navigate = useNavigate();
@@ -30,7 +31,6 @@ const Register = () => {
         firstName: data.firstName,
         middleName: data.middleName,
         lastName: data.lastName,
-        age: data.age,
         gender: data.gender,
         email: data.email,
         password: data.password,
@@ -38,7 +38,7 @@ const Register = () => {
         userType: data.userType,
       };
       console.log("Form submitted:", data);
-      alert("Validation all good.");
+      console.log("Validation all good.");
       dispatch(registerUser(userData));
       navigate("/login");
     } catch (error) {
@@ -96,11 +96,6 @@ const Register = () => {
             {errors.lastName && (
               <span className="error">{errors.lastName.message}</span>
             )}
-          </div>
-
-          <div className="form-group">
-            <input type="number" {...register("age")} placeholder="Age" />
-            {errors.age && <span className="error">{errors.age.message}</span>}
           </div>
 
           <div className="form-group gender-group">

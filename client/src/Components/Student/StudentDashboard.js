@@ -1,6 +1,6 @@
 import React from "react";
-import "../StudentDashboard.css";
-import logo from "../Images/AdviseLinkLogo.png";
+import "../../css/StudentDashboard.css";
+import logo from "../../Images/AdviseLinkLogo.png";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";

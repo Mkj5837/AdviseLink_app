@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login } from "../Features/userSlice";
-import "../Login.css";
+import "../css/Login.css";
 import { Container } from "reactstrap";
 import Register from "./Register";
 
@@ -19,20 +19,47 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showError, setShowError] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(login({ email, password }));
+    setShowError(false);
+    setErrorMsg('');
+    setIsLoading(true);
+    
+    try {
+      const resultAction = await dispatch(login({ email, password }));
+      if (login.fulfilled.match(resultAction)) {
+        const user = resultAction.payload;
+        if (user?.userType === "advisor") {
+          navigate("/dashboard");
+        } else if (user?.userType === "student") {
+          navigate("/student-dashboard");
+        }
+      } else if (login.rejected.match(resultAction)) {
+        setErrorMsg(resultAction.payload || 'Login failed. Please check your credentials.');
+        setShowError(true);
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      setErrorMsg('An unexpected error occurred. Please try again.');
+      setShowError(true);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  // Handle navigation after successful login
   useEffect(() => {
-    if (isSuccess) {
-      navigate("/dashboard"); // or your desired route
+    if (isSuccess && user) {
+      if (user.userType === "advisor") {
+        navigate("/dashboard");
+      } else if (user.userType === "student") {
+        navigate("/student-dashboard");
+      }
     }
-    if (isError) {
-      setErrorMsg("Login failed. Please check your credentials.");
-    }
-  }, [isSuccess, isError, navigate]);
+  }, [isSuccess, user, navigate]);
 
   return (
     <Container fluid>
@@ -41,7 +68,7 @@ const Login = () => {
           <h1>Advise Link</h1>
           <p className="subtitle">Connect With Your Advisor Easily.</p>
           <form className="login-form" onSubmit={handleSubmit}>
-            <p className="sign-in-text">Sign in with email</p>
+            
             <div className="form-group">
               <label>E-mail</label>
               <input

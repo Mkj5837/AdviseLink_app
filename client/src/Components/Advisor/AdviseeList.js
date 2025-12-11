@@ -1,27 +1,27 @@
 import React from "react";
-import stud1 from "../Images/avatars/student1.jpg";
-import stud2 from "../Images/avatars/stud2.jpg";
+import stud1Image from "../../Images/avatars/student1.jpg";
+import stud2Image from "../../Images/avatars/stud2.jpg";
 
 const AdviseesList = () => {
   const recentAdvisees = [
     {
       name: "Francis Tran",
-      image: "../Images/avatars/student1.jpg",
+      image: stud1Image,
       timeAgo: "05 Minutes Ago",
     },
     {
       name: "Elliana Palacios",
-      image: "../Images/avatars/stud2.jpg",
+      image: stud2Image,
       timeAgo: "23 Minutes Ago",
     },
     {
       name: "Katherine Webster",
-      image: "/avatars/katherine.png",
+      image: stud1Image,
       timeAgo: "10 Minutes Ago",
     },
     {
       name: "Avalon Carey",
-      image: "/avatars/avalon.png",
+      image: stud2Image,
       timeAgo: "10 Minutes Ago",
     },
   ];

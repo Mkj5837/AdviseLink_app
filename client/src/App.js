@@ -4,18 +4,18 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
+import { Container } from "reactstrap";
 
 //Components
 import Footer from "./Components/Footer";
 import Header from "./Components/Header";
 import Login from "./Components/Login";
-import Dashboard from "./Components/Dashboard";
-import StudentDashboard from "./Components/StudentDashboard";
+import Dashboard from "./Components/Advisor/Dashboard";
+import StudentDashboard from "./Components/Student/StudentDashboard";
 import Register from "./Components/Register";
 import About from "./Components/About";
 import UserList from "./Components/UserList";
 import UpdateUser from "./Components/UpdateUser";
-import { Router } from "express";
 
 const App = () => {
   // Get the current user from Redux state
@@ -32,17 +32,15 @@ const App = () => {
       } else if (userType === "advisor") {
         navigate("/dashboard");
       }
-      [userType, navigate];
     } catch (error) {
       console.log(error);
     }
-  });
+  }, [userType, navigate]);
   //end of useEffect
 
   return (
     <Container fluid>
       <div className="App">
-        <Router>
           {/* protected route */}
           {email ? <Header /> : null}
           <Routes>
@@ -58,9 +56,8 @@ const App = () => {
               element={<UpdateUser />}
             />
           </Routes>
-          {/* protected route */}
-          {email ? <Footer /> : null}
-        </Router>
+          {/* Public/unprotected  route */}
+          <Footer />
       </div>
     </Container>
   );

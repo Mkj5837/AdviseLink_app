@@ -1,19 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { UsersData } from "../ExampleData";
 import axios from "axios";
-import * as ENV from "../config";
+import { SERVER_URL } from "../config";
 
-// Initial state
+// ------------------- Initial state
 const initialState = {
-  value: UsersData,
+  value: null,
   isError: false,
   isSuccess: false,
 };
 console.log(initialState);
 
-// API base URL
-const SERVER_URL = process.env.REACT_APP_SERVER_URL || "http://localhost:4000";
+//--------------------- API base URL
+// const SERVER_URL = ENV.REACT_APP_SERVER_URL || "http://localhost:4000" || "http://localhost:3001" ;
 
+//---------------------- THUNKS -----------------------------
 //Register Thunk
 // This thunk is used to register a new user
 export const registerUser = createAsyncThunk(
@@ -26,7 +27,6 @@ export const registerUser = createAsyncThunk(
         firstName: userData.firstName,
         middleName: userData.middleName,
         lastName: userData.lastName,
-        age: userData.age,
         gender: userData.gender,
         email: userData.email,
         password: userData.password,
@@ -49,24 +49,52 @@ export const login = createAsyncThunk(
   "users/login",
   async (userData, { rejectWithValue }) => {
     try {
+      console.log('Attempting to log in with:', { email: userData.email });
+      console.log('Using server URL:', SERVER_URL);
+      
       const response = await axios.post(`${SERVER_URL}/login`, {
         email: userData.email,
         password: userData.password,
       });
-      return response.data.user; // or response.data, depending on your backend
+      
+      console.log('Login response:', response.data);
+      
+      if (!response.data.user) {
+        console.error('No user data in response:', response.data);
+        return rejectWithValue('Invalid response from server');
+      }
+      
+      return response.data.user;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Login failed");
+      console.error('Login error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      
+      const errorMessage = error.response?.data?.error || 
+                         error.response?.data?.message || 
+                         error.message || 
+                         'Login failed. Please try again.';
+      
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
 //Logout Thunk
 // This thunk is used to log out a user
-export const logout = createAsyncThunk("/users/logout", async () => {
-  try {
-    await axios.post(`${SERVER_URL}/logout`);
-  } catch (error) {}
-});
+export const logout = createAsyncThunk(
+  "/users/logout",
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await axios.post(`${SERVER_URL}/logout`);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.error || "Logout failed");
+    }
+  }
+);
 
 // Update User Profile Thunk
 export const updateUserProfile = createAsyncThunk(
@@ -107,26 +135,26 @@ export const updateUserProfile = createAsyncThunk(
   }
 );
 
-// Create the slice
+// ---------------------------- CREATE USER SLICE ------------------------
 export const userSlice = createSlice({
   name: "users",
   initialState,
   reducers: {
-    clearUserError: (state) => {
-      state.isError = null;
-    },
-    resetUserState: (state) => {
-      state.loading = false;
-      state.isError = null;
-    },
+    // clearUserError: (state) => {
+    //   state.isError = null;
+    // },
+    // resetUserState: (state) => {
+    //   state.loading = false;
+    //   state.isError = null;
+    // },
     addUser: (state, action) => {
       state.value.push(action.payload);
     },
     deleteUser: (state, action) => {
-      // Remove a user by email from the state
+      // Remove a user by ID number from the state.
       if (Array.isArray(state.value)) {
         state.value = state.value.filter(
-          (user) => user.email !== action.payload
+          (user) => user.idNumber !== action.payload
         );
       }
     },
@@ -146,8 +174,7 @@ export const userSlice = createSlice({
     },
     logout: (state) => {
       state.user = null;
-      state.isSuccess = false;
-      state.isError = false;
+      state.isAuthenticated = false;
     },
   },
   extraReducers: (builder) => {
@@ -211,8 +238,6 @@ export const userSlice = createSlice({
 
 // Export actions and reducer
 export const {
-  clearUserError,
-  resetUserState,
   addUser,
   deleteUser,
   updateUser,

@@ -8,8 +8,8 @@ import storage from "redux-persist/lib/storage"; // Uses localStorage by default
 
 // Initial reducers
 const initialReducers = {
-  // auth: authReducer,
   user: userReducer,
+  // auth: authReducer,
   // messages: messageReducer,
 };
 
@@ -21,7 +21,7 @@ const persistConfig = {
 const rootReducer = combineReducers(initialReducers);
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 
-const store = configureStore({
+export const store = configureStore({
   reducer: persistedReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
@@ -31,4 +31,4 @@ const store = configureStore({
 
 const persistore = persistStore(store); // Create persistore for rehydration
 
-export { store, persistore };
+export {persistore};

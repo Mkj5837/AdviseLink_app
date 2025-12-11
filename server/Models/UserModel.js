@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const UserSchema = new mongoose.Schema({
+const UserSchema =new mongoose.Schema({
   idNumber: {
     type: String,
     required: true,
@@ -13,34 +13,21 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    minlength: 2,
-    maxlength: 30,
+    minlength: 3,
+    maxlength: 20,
   },
   middleName: {
     type: String,
     required: false,
     trim: true,
-    minlength: 2,
-    maxlength: 30,
+    maxlength: 25,
   },
   lastName: {
     type: String,
     required: true,
     trim: true,
-    minlength: 2,
-    maxlength: 30,
-  },
-  age: {
-    type: Number,
-    required: false,
-    min: 1,
-    max: 120,
-  },
-  gender: {
-    type: String,
-    required: true,
-    enum: ["male", "female", "null"],
-    default: "null",
+    minlength: 3,
+    maxlength: 25,
   },
   email: {
     type: String,
@@ -48,7 +35,7 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     lowercase: true,
     trim: true,
-    match: [/.+\@.+\..+/, "Please fill a valid email address"],
+    match: [/^[^\s@]+@sct\.edu\.om$/, "Email must end with @sct.edu.om"],
   },
   password: {
     type: String,
@@ -63,20 +50,18 @@ const UserSchema = new mongoose.Schema({
   },
   userType: {
     type: String,
+    required: true,
     enum: ["student", "admin", "advisor"],
     default: "student",
   },
-  profilePic: { type: String }, // <-- Add this line
-  createdAt: {
-    type: Date,
-    default: Date.now,
+  profilePic: { 
+    type: String,
+    default: "./pfpDefault.jpeg"
   },
-  updatedAt: {
-    type: Date,
-    default: Date.now,
-  },
+}, {
+  timestamps: true  // This enables automatic createdAt and updatedAt fields
 });
 
-const UserModel = mongoose.model("User", UserSchema);
+const UserModel = mongoose.model("users", UserSchema);
 
 export default UserModel;

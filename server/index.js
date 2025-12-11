@@ -1,31 +1,35 @@
+//Library
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import UserModel from "./Models/UserModel.js";
 import bcrypt from "bcrypt";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+
+//Models or files
+import UserModel from "./Models/UserModel.js";
 import * as ENV from "./config.js";
 
 const app = express();
 app.use(express.json());
 
 // Middleware
-const corsOptions = {
-  origin: ENV.CLIENT_URL, // client URL from environment variable
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
-  credentials: true, // Enable credentials (cookies, authorization headers, etc.)
-};
+// const corsOptions = {
+//   origin: ENV.CLIENT_URL, // client URL from environment variable
+//   methods: "GET,PUT,POST,DELETE",
+//   credentials: true, // Enable credentials (cookies, authorization headers, etc.)
+// };
 
-app.use(cors(corsOptions));
+app.use(cors());
 
-// Database connection
-const connectString =
-  process.env.MONGO_URI ||
-  `mongodb+srv://${ENV.DB_USER}:${ENV.DB_PASSWORD}@${ENV.DB_CLUSTER}/${ENV.DB_NAME}?retryWrites=true&w=majority&appName=AdviseLinkCluster`;
+// // Database connection
+// const connectString =
+//   process.env.MONGO_URI ||
+//   `mongodb+srv://${ENV.DB_USER}:${ENV.DB_PASSWORD}@${ENV.DB_CLUSTER}/${ENV.DB_NAME}?retryWrites=true&w=majority&appName=AdviseLinkCluster`;
+const connectString ="mongodb+srv://admin:admin12345@adviselinkcluster.bnfupja.mongodb.net/AdviseLinkDB?appName=AdviseLinkCluster"
 
 mongoose.connect(connectString, {
   useNewUrlParser: true,
@@ -61,29 +65,37 @@ const __dirname = dirname(__filename);
 //requests to '/uploads' will serve files from the local 'uploads' folder
 app.use("/uploads", express.static(__dirname + "/uploads"));
 
-//API Routes
+//--------------- API Routes -------------
 //register User
 app.post("/registerUser", async (req, res) => {
+  //check the values first (for better validation/security)
+  const { idNumber, firstName, lastName, email, password, userType } = req.body;
+
+  if (!idNumber || !firstName || !lastName || !email || !password || !userType) {
+      return res.status(400).json({ error: "Missing required fields." });
+  }
+
   try {
+    //check if the user exists in the app already.
+    const existingUser = await UserModel.findOne({ $or: [{ idNumber }, { email }] });
+    if (existingUser) {
+      return res.status(409).json({ error: "User with this ID or email already exists." });
+    }
     const idNumber = req.body.idNumber;
-    const fname = req.body.firstName;
-    const Lname = req.body.lastName;
-    //const gender = req.body.gender;
+    const firstName = req.body.firstName;
+    const lastName = req.body.lastName;
     const email = req.body.email;
     const password = req.body.password;
     const userType = req.body.userType;
-    const age = req.body.age;
-    const avatar = req.body.avatar;
-    const hashedpassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new UserModel({
       idNumber: idNumber,
-      firstName: fname,
-      lastName: Lname,
+      firstName: firstName,
+      lastName: lastName,
       email: email,
-      password: hashedpassword,
+      password: hashedPassword,
       userType: userType,
-      profilePic: req.body.profilePic,
     });
 
     await user.save();
@@ -233,7 +245,7 @@ app.put(
 //   console.log("Connected to server.");
 // });
 
-const PORT = ENV.PORT || 4000;
+const PORT = ENV.PORT || 4000 || 3001 || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`You are connect. Server running on port ${PORT}`);
 });

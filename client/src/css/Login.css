@@ -25,7 +25,7 @@
 .container::before {
   bottom: -100px;
   left: -100px;
-  background-image: url("./Images/AdviseLinkLogo1.png");
+  background-image: url("../Images/AdviseLinkLogo1.png");
   background-size: 100%;
   background-position: center;
   background-repeat: no-repeat;
@@ -35,7 +35,7 @@
 .container::after {
   top: -50px;
   right: -50px;
-  background-image: url("./Images/AdviseLinkLogo2.png");
+  background-image: url("../Images/AdviseLinkLogo2.png");
   background-size: 100%;
   background-position: center;
   background-repeat: no-repeat;
