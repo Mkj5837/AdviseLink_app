@@ -5,9 +5,12 @@ import { SERVER_URL } from "../config";
 
 // ------------------- Initial state
 const initialState = {
-  value: null,
+  user: null, // Use 'user' for the current logged-in user (as used in extraReducers)
+ value:null,
+ isLoading: false,
   isError: false,
   isSuccess: false,
+  error: null,
 };
 console.log(initialState);
 
@@ -19,10 +22,10 @@ console.log(initialState);
 // This thunk is used to register a new user
 export const registerUser = createAsyncThunk(
   "users/registerUser",
-  async (userData) => {
+  async (userData, { rejectWithValue }) => {
     try {
       // Use SERVER_URL from environment variable
-      const response = await axios.post(`${SERVER_URL}/registerUser`, {
+      const response = await axios.post(`http://localhost:4000/registerUser`, {
         idNumber: userData.idNumber,
         firstName: userData.firstName,
         middleName: userData.middleName,
@@ -30,15 +33,16 @@ export const registerUser = createAsyncThunk(
         gender: userData.gender,
         email: userData.email,
         password: userData.password,
-        confirmPassword: userData.confirmPassword,
         userType: userData.userType,
-        // avatar: userData.avatar,
       });
       console.log(response);
       const user = response.data.user; //retrieve the response from the server
       return user; //return the response from the server as payload to the thunk
     } catch (error) {
       console.log(error);
+      const errorMessage = error.response?.data?.error || 'Registration failed.';
+      console.error("Registration error:", errorMessage); 
+      return rejectWithValue(errorMessage);
     }
   }
 );
@@ -49,21 +53,16 @@ export const login = createAsyncThunk(
   "users/login",
   async (userData, { rejectWithValue }) => {
     try {
-      console.log('Attempting to log in with:', { email: userData.email });
-      console.log('Using server URL:', SERVER_URL);
-      
-      const response = await axios.post(`${SERVER_URL}/login`, {
+      console.log('Attempting to log in with:', { email: userData.email });      
+      const response = await axios.post(`http://localhost:4000/login`, {
         email: userData.email,
         password: userData.password,
       });
-      
       console.log('Login response:', response.data);
-      
       if (!response.data.user) {
         console.error('No user data in response:', response.data);
         return rejectWithValue('Invalid response from server');
       }
-      
       return response.data.user;
     } catch (error) {
       console.error('Login error:', {
@@ -83,55 +82,31 @@ export const login = createAsyncThunk(
 );
 
 //Logout Thunk
-// This thunk is used to log out a user
 export const logout = createAsyncThunk(
-  "/users/logout",
-  async (userData, { rejectWithValue }) => {
+  "users/logout",
+  async ({ rejectWithValue }) => {
     try {
-      const response = await axios.post(`${SERVER_URL}/logout`);
+      const response = await axios.post(`http://localhost:4000/logout`);
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data?.error || "Logout failed");
+      const errorMessage = error.response?.data?.error || "Logout failed";
+      return rejectWithValue(errorMessage);
     }
   }
 );
 
 // Update User Profile Thunk
 export const updateUserProfile = createAsyncThunk(
-  "user/updateUserProfile", // Action type string for Redux
+  'users/updateProfile', 
   async (userData, { rejectWithValue }) => {
     try {
-      // Prepare form data for file upload
-      const formData = new FormData();
-      formData.append("email", userData.email);
-      formData.append("name", userData.name);
-      formData.append("password", userData.password);
-      if (userData.profilePic) {
-        formData.append("profilePic", userData.profilePic);
-      }
-
-      const response = await axios.put(
-        `${SERVER_URL}/updateUserProfile/${userData.email}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      // Extract the updated user data from the server response
-      const user = response.data.user;
-
-      // Return the updated user data, which will be used by Redux to update the state
-      return user;
+      const response = await axios.put(`http://localhost:4000/updateUser`, userData);
+      return response.data.user;
     } catch (error) {
-      // Log any errors that occur during the request
-      console.log(error);
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to update profile"
-      );
-    }
+      console.error('Update Profile error:', error.response?.data || error.message);
+      const errorMessage = error.response?.data?.error || 'Failed to update user profile.';
+      return rejectWithValue(errorMessage);
+     }
   }
 );
 
@@ -172,66 +147,73 @@ export const userSlice = createSlice({
         );
       }
     },
-    logout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-    },
   },
   extraReducers: (builder) => {
     builder
-      // Get user profile cases
       .addCase(registerUser.pending, (state) => {
-        state.loading = true;
+        state.isLoading= true;
         state.error = null;
+        
       })
       .addCase(registerUser.fulfilled, (state, action) => {
-        state.loading = false;
-        state.error = null;
+        state.isLoading = false;
+        state.isSuccess = true;
         state.user = action.payload;
+        state.error = null;
+        
       })
       .addCase(registerUser.rejected, (state, action) => {
-        state.loading = false;
+        state.isLoading = false;
+        state.isError = true;
         state.error = action.payload;
-      }) //end of register user cases
+        
+      }) 
       //start of login cases
       .addCase(login.pending, (state) => {
-        state.loading = true;
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(login.fulfilled, (state, action) => {
         state.user = action.payload; //assign the payload which is the user object return from the server after authentication.
-        state.loading = false;
+        state.isLoading = false;
         state.isSuccess = true;
+        state.error = null;
       })
       .addCase(login.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
-        state.error = action.error.message; // Capture the error message
-        console.error("Login failed:", action.error.message); // Log the error message
+        state.error = action.payload;
       })
       // Add cases for updateUserProfile
       .addCase(updateUserProfile.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.user = action.payload; // Update the current logged-in user
+        state.user = action.payload; 
         state.isLoading = false;
+        state.error = null;
       })
-      .addCase(updateUserProfile.rejected, (state) => {
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
+        state.error = action.payload;
+        console.log("Update error:", action.payload);
       })
       //Cases for logout
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
       .addCase(logout.fulfilled, (state) => {
         state.user = null;
         state.isLoading = false;
         state.isSuccess = false;
       })
-      .addCase(logout.rejected, (state) => {
+      .addCase(logout.rejected, (state,action) => {
         state.isLoading = false;
         state.isError = true;
+        state.error = action.payload;
       });
   },
 });

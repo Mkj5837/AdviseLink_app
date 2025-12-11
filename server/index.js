@@ -3,11 +3,7 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import bcrypt from "bcrypt";
-import multer from "multer";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
-import { dirname } from "path";
+
 
 //Models or files
 import UserModel from "./Models/UserModel.js";
@@ -36,37 +32,8 @@ mongoose.connect(connectString, {
   useUnifiedTopology: true,
 });
 
-// Ensure uploads directory exists
-const uploadDir = "uploads";
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
-}
-
-// Set up multer for file storage
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Specify the directory to save uploaded files
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname); // Unique filename
-  },
-});
-
-//create multer instance
-const upload = multer({ storage: storage });
-
-//convert the URL of the current module to a file path
-const __filename = fileURLToPath(import.meta.url);
-
-//get the directory name from the current file path
-const __dirname = dirname(__filename);
-
-//set up middleware to serve static files from the 'uploads' directory
-//requests to '/uploads' will serve files from the local 'uploads' folder
-app.use("/uploads", express.static(__dirname + "/uploads"));
-
-//--------------- API Routes -------------
-//register User
+//------------------------------ API Routes --------------------
+//register User (sign-up)
 app.post("/registerUser", async (req, res) => {
   //check the values first (for better validation/security)
   const { idNumber, firstName, lastName, email, password, userType } = req.body;
@@ -97,7 +64,6 @@ app.post("/registerUser", async (req, res) => {
       password: hashedPassword,
       userType: userType,
     });
-
     await user.save();
     res.send({ user: user, msg: "Added." });
   } catch (error) {
@@ -108,30 +74,24 @@ app.post("/registerUser", async (req, res) => {
 
 //login api
 app.post("/login", async (req, res) => {
+  if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required." });
+    }
   try {
-    console.log("Received body:", req.body);
     const email = req.body.email;
     const password = req.body.password;
-    console.log("Email from request:", email);
-    console.log("Email from request:", email);
-    console.log("Password from request:", password);
     //search the user
     const user = await UserModel.findOne({ email }).select("+password");
     //if not found
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
+    if (!user ||!(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ error: "Invalid credentials" });
     }
     console.log(`User with email ${user.email} attempted to log in.`);
-    console.log("Password from request:", password);
-    console.log("Password from DB:", user.password);
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      return res.status(401).json({ error: "Invalid email or password" });
-    }
     //if everything is ok, send the user and message.
     res.status(200).json({ user, message: "Login Success." });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Login Error:", err);
+    res.status(500).json({ error: "An unexpected error occurred." });
   }
 });
 
@@ -140,112 +100,81 @@ app.post("/logout", (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 });
 
-// Update Profile
-app.put("/api/users/profile", upload.single("profilePic"), async (req, res) => {
-  try {
-    const { userId, updates } = req.body;
-
-    // Find the user first
-    const user = await UserModel.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
+//Update api
+app.put("/updateUser", async (req, res) => {
+    const { email, firstName, lastName, profilePicUrl } = req.body;
+    if (!email) {
+        return res.status(400).json({ error: "Email is required to identify the user." });
     }
-
-    // If a new file was uploaded
-    if (req.file) {
-      // If user already has a profilePic, delete the old file
-      if (user.profilePic) {
-        const oldPicPath = path.join("uploads", user.profilePic);
-        if (fs.existsSync(oldPicPath)) {
-          fs.unlinkSync(oldPicPath);
-        }
-      }
-      // Set the new profilePic filename in updates
-      updates.profilePic = req.file.filename;
-    }
-
-    // Update the user
-    const updatedUser = await UserModel.findByIdAndUpdate(userId, updates, {
-      new: true,
-    });
-
-    if (!updatedUser) {
-      return res.status(404).json({ error: "User not found after update" });
-    }
-
-    res
-      .status(200)
-      .json({ user: updatedUser, message: "Profile updated successfully" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Update User Profile by Email
-app.put(
-  "/updateUserProfile/:email",
-  upload.single("profilePic"),
-  async (req, res) => {
-    const email = req.params.email;
-    const { firstName, middleName, lastName, password } = req.body;
-
     try {
-      // Find the user by email in the database
-      const userToUpdate = await UserModel.findOne({ email: email });
-
-      // If the user is not found, return a 404 error
-      if (!userToUpdate) {
-        return res.status(404).json({ error: "User not found" });
-      }
-
-      // Check if a file was uploaded and get the filename
-      if (req.file) {
-        const profilePic = req.file.filename;
-        // Delete old profile picture if it exists
-        if (userToUpdate.profilePic) {
-          const oldFilePath = path.join("uploads", userToUpdate.profilePic);
-          if (fs.existsSync(oldFilePath)) {
-            fs.unlink(oldFilePath, (err) => {
-              if (err) {
-                console.error("Error deleting file:", err);
-              } else {
-                console.log("Old file deleted successfully");
-              }
-            });
-          }
+        const updateFields = {};
+        //set the update fields
+        if (firstName) updateFields.firstName = firstName;
+        if (lastName) updateFields.lastName = lastName;
+        
+        //profil pic update
+        if (profilePicUrl) {
+            updateFields.profilePic = profilePicUrl;
         }
-        userToUpdate.profilePic = profilePic; // Set new profile picture filename
-      }
 
-      // Update user's name fields
-      userToUpdate.firstName = firstName;
-      userToUpdate.middleName = middleName;
-      userToUpdate.lastName = lastName;
+        //check if an update is requested
+        if (Object.keys(updateFields).length === 0) {
+            return res.status(400).json({ error: "No fields provided for update." });
+        }
 
-      // Hash the new password and update if it has changed
-      if (password && password !== userToUpdate.password) {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        userToUpdate.password = hashedPassword;
-      }
+        //find and update user
+        const updatedUser = await UserModel.findOneAndUpdate(
+            { email: email }, // Query
+            { $set: updateFields }, // Update
+            { new: true, runValidators: true } // Options
+        );
 
-      // Save the updated user information to the database
-      await userToUpdate.save();
+        //if user not found
+        if (!updatedUser) {
+            return res.status(404).json({ error: "User not found with the provided email." });
+        }
+        
+        //success response
+        res.status(200).json({ 
+            user: updatedUser, 
+            message: "User profile updated successfully." 
+        });
 
-      // Send the updated user data and a success message as a response
-      res.send({ user: userToUpdate, msg: "Updated." });
-    } catch (err) {
-      // Handle any errors during the update process
-      res.status(500).json({ error: err.message });
+    } catch (error) {
+      //handle DB errors
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ error: error.message });
+        }
+        console.error("User Update Error:", error);
+        res.status(500).json({ error: "An unexpected error occurred during update." });
     }
-  }
-);
-
-// app.listen(3001, () => {
-//   console.log("Connected to server.");
-// });
-
-const PORT = ENV.PORT || 4000 || 3001 || 5000;
-app.listen(PORT, () => {
-  console.log(`You are connect. Server running on port ${PORT}`);
 });
+
+//delete api
+app.delete("/deleteUser", async (req, res) => {
+    try {
+        //find and delete user
+        const deleteUser = await UserModel.findOneAndDelete({ email: email });
+
+        //is user not found
+        if (!deleteUser) {
+            return res.status(404).json({ error: "User not found with the provided email. Deletion failed." });
+        }
+        //success response
+        res.status(200).json({ 
+            message: `User with email ${email} deleted successfully.`,
+        });
+    } catch (error) {
+        console.error("User Delete Error:", error);
+        res.status(500).json({ error: "An unexpected error occurred during deletion." });
+    }
+});
+
+app.listen(3001, () => {
+  console.log("Connected to server.");
+});
+
+// const PORT = ENV.PORT || 4000 || 3001 || 5000;
+// app.listen(PORT, () => {
+//   console.log(`You are connect. Server running on port ${PORT}`);
+// });
