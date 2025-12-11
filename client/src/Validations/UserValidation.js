@@ -2,21 +2,31 @@ import * as yup from "yup";
 
 export const userSchemaValidation = yup.object().shape({
   idNumber: yup.string().required("Student ID is required"),
-  firstName: yup.string().required("First name is required").min(3,"First name must be at least 3 characters").max(20,"First name cannot be more than 20 characters."),
-  middleName: yup.string().nullable().max(20,"Middle name must be at least 3 characters"),
-  lastName: yup.string().required("Last name is required").min(3, "Last name must be at least 3 characters").max(25, "Last name must be at most 25 characters."),
-  // age: yup
-  //   .number()
-  //   .typeError("Age must be a number")
-  //   .min(18, "Age must be at least 18")
-  //   .max(120, "Age must be less than 120"),
-  gender: yup.string().required("Gender is required"),
+  firstName: yup
+    .string()
+    .required("First name is required")
+    .min(3, "First name must be at least 3 characters")
+    .max(20, "First name cannot be more than 20 characters."),
+  middleName: yup
+    .string()
+    .nullable()
+    .max(20, "Middle name cant be more than 20 characters"),
+  lastName: yup
+    .string()
+    .required("Last name is required.")
+    .min(3, "Last name must be at least 3 characters")
+    .max(25, "Last name must be at most 25 characters."),
   email: yup
     .string()
     .email("Invalid email format")
     .required()
-    .test("emailDomain", "Email must contain 'sct.edu.om'", (value) => value?.endsWith("@sct.edu.om")),
-  userType: yup.string().oneOf(["advisor", "student"]).required("User type is required"),
+    .test("emailDomain", "Email must contain 'utas.edu.om'", (value) =>
+      value?.endsWith("@utas.edu.om")
+    ),
+  userType: yup
+    .string()
+    .oneOf(["advisor", "student"])
+    .required("User type is required"),
   password: yup
     .string()
     .required("Password is required")

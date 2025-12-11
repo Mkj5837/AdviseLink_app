@@ -1,21 +1,20 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { UsersData } from "../ExampleData";
 import axios from "axios";
-import { SERVER_URL } from "../config";
 
 // ------------------- Initial state
 const initialState = {
   user: null, // Use 'user' for the current logged-in user (as used in extraReducers)
- value:null,
- isLoading: false,
+  value: null,
+  isLoading: false,
   isError: false,
   isSuccess: false,
   error: null,
 };
 console.log(initialState);
 
-//--------------------- API base URL
-// const SERVER_URL = ENV.REACT_APP_SERVER_URL || "http://localhost:4000" || "http://localhost:3001" ;
+const server_port =
+  "http://localhost:3001" || "http://localhost:4000" || "http://localhost:5000";
 
 //---------------------- THUNKS -----------------------------
 //Register Thunk
@@ -25,7 +24,7 @@ export const registerUser = createAsyncThunk(
   async (userData, { rejectWithValue }) => {
     try {
       // Use SERVER_URL from environment variable
-      const response = await axios.post(`http://localhost:4000/registerUser`, {
+      const response = await axios.post(`${server_port}/registerUser`, {
         idNumber: userData.idNumber,
         firstName: userData.firstName,
         middleName: userData.middleName,
@@ -40,8 +39,9 @@ export const registerUser = createAsyncThunk(
       return user; //return the response from the server as payload to the thunk
     } catch (error) {
       console.log(error);
-      const errorMessage = error.response?.data?.error || 'Registration failed.';
-      console.error("Registration error:", errorMessage); 
+      const errorMessage =
+        error.response?.data?.error || "Registration failed.";
+      console.error("Registration error:", errorMessage);
       return rejectWithValue(errorMessage);
     }
   }
@@ -53,29 +53,30 @@ export const login = createAsyncThunk(
   "users/login",
   async (userData, { rejectWithValue }) => {
     try {
-      console.log('Attempting to log in with:', { email: userData.email });      
-      const response = await axios.post(`http://localhost:4000/login`, {
+      console.log("Attempting to log in with:", { email: userData.email });
+      const response = await axios.post(`${server_port}/login`, {
         email: userData.email,
         password: userData.password,
       });
-      console.log('Login response:', response.data);
+      console.log("Login response:", response.data);
       if (!response.data.user) {
-        console.error('No user data in response:', response.data);
-        return rejectWithValue('Invalid response from server');
+        console.error("No user data in response:", response.data);
+        return rejectWithValue("Invalid response from server");
       }
       return response.data.user;
     } catch (error) {
-      console.error('Login error:', {
+      console.error("Login error:", {
         message: error.message,
         response: error.response?.data,
         status: error.response?.status,
       });
-      
-      const errorMessage = error.response?.data?.error || 
-                         error.response?.data?.message || 
-                         error.message || 
-                         'Login failed. Please try again.';
-      
+
+      const errorMessage =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        error.message ||
+        "Login failed. Please try again.";
+
       return rejectWithValue(errorMessage);
     }
   }
@@ -86,7 +87,7 @@ export const logout = createAsyncThunk(
   "users/logout",
   async ({ rejectWithValue }) => {
     try {
-      const response = await axios.post(`http://localhost:4000/logout`);
+      const response = await axios.post(`${server_port}/logout`);
       return response.data;
     } catch (error) {
       const errorMessage = error.response?.data?.error || "Logout failed";
@@ -97,16 +98,20 @@ export const logout = createAsyncThunk(
 
 // Update User Profile Thunk
 export const updateUserProfile = createAsyncThunk(
-  'users/updateProfile', 
+  "users/updateProfile",
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`http://localhost:4000/updateUser`, userData);
+      const response = await axios.put(`${server_port}/updateUser`, userData);
       return response.data.user;
     } catch (error) {
-      console.error('Update Profile error:', error.response?.data || error.message);
-      const errorMessage = error.response?.data?.error || 'Failed to update user profile.';
+      console.error(
+        "Update Profile error:",
+        error.response?.data || error.message
+      );
+      const errorMessage =
+        error.response?.data?.error || "Failed to update user profile.";
       return rejectWithValue(errorMessage);
-     }
+    }
   }
 );
 
@@ -151,23 +156,20 @@ export const userSlice = createSlice({
   extraReducers: (builder) => {
     builder
       .addCase(registerUser.pending, (state) => {
-        state.isLoading= true;
+        state.isLoading = true;
         state.error = null;
-        
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
         state.user = action.payload;
         state.error = null;
-        
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.error = action.payload;
-        
-      }) 
+      })
       //start of login cases
       .addCase(login.pending, (state) => {
         state.isLoading = true;
@@ -190,7 +192,7 @@ export const userSlice = createSlice({
         state.error = null;
       })
       .addCase(updateUserProfile.fulfilled, (state, action) => {
-        state.user = action.payload; 
+        state.user = action.payload;
         state.isLoading = false;
         state.error = null;
       })
@@ -210,7 +212,7 @@ export const userSlice = createSlice({
         state.isLoading = false;
         state.isSuccess = false;
       })
-      .addCase(logout.rejected, (state,action) => {
+      .addCase(logout.rejected, (state, action) => {
         state.isLoading = false;
         state.isError = true;
         state.error = action.payload;
@@ -219,9 +221,5 @@ export const userSlice = createSlice({
 });
 
 // Export actions and reducer
-export const {
-  addUser,
-  deleteUser,
-  updateUser,
-} = userSlice.actions;
+export const { addUser, deleteUser, updateUser } = userSlice.actions;
 export default userSlice.reducer;
