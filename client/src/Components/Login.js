@@ -1,65 +1,60 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login } from "../Features/userSlice";
 import "../css/Login.css";
 import { Container } from "reactstrap";
-import Register from "./Register";
+
+import { useForm } from "react-hook-form";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { loginSchemaValidation } from "../Validations/LoginValidation";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const Login = () => {
-  //the needed vars
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const user = useSelector((state) => state.user.user);
-  const isSuccess = useSelector((state) => state.user.isSuccess);
-  const isError = useSelector((state) => state.user.isError);
+  const { user, isLoading, error } = useSelector((state) => state.user);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showError, setShowError] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(loginSchemaValidation),
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setShowError(false);
-    setErrorMsg('');
-    setIsLoading(true);
-    
+  //State for visual feedback (can often be removed if using Redux flags)
+  const [showPassword, setShowPassword] = React.useState(false);
+
+  const onSubmit = async (data) => {
     try {
-      const resultAction = await dispatch(login({ email, password }));
-      if (login.fulfilled.match(resultAction)) {
-        const user = resultAction.payload;
-        if (user?.userType === "advisor") {
-          navigate("/dashboard");
-        } else if (user?.userType === "student") {
-          navigate("/student-dashboard");
-        }
-      } else if (login.rejected.match(resultAction)) {
-        setErrorMsg(resultAction.payload || 'Login failed. Please check your credentials.');
-        setShowError(true);
+      //Dispatch the thunk and await its result
+      const resultAction = await dispatch(login(data));
+
+      //unwrapResult handles success (returns payload) or rejection (throws error)
+      const userPayload = unwrapResult(resultAction);
+
+      //if login successful: redirect based on userType
+      if (userPayload?.userType === "advisor") {
+        navigate("/dashboard");
+      } else if (userPayload?.userType === "student") {
+        navigate("/student-dashboard");
       }
-    } catch (error) {
-      console.error('Login error:', error);
-      setErrorMsg('An unexpected error occurred. Please try again.');
-      setShowError(true);
-    } finally {
-      setIsLoading(false);
+    } catch (rejectedValue) {
+      console.error("Login failed:", rejectedValue);
     }
   };
 
-  // Handle navigation after successful login
   useEffect(() => {
-    if (isSuccess && user) {
+    if (user) {
       if (user.userType === "advisor") {
         navigate("/dashboard");
       } else if (user.userType === "student") {
         navigate("/student-dashboard");
       }
     }
-  }, [isSuccess, user, navigate]);
+  }, [user, navigate]);
 
   return (
     <Container fluid>
@@ -67,21 +62,21 @@ const Login = () => {
         <div className="login-container">
           <h1>Advise Link</h1>
           <p className="subtitle">Connect With Your Advisor Easily.</p>
-          <form className="login-form" onSubmit={handleSubmit}>
-            
+
+          <form className="login-form" onSubmit={handleSubmit(onSubmit)}>
             <div className="form-group">
               <label>E-mail</label>
               <input
                 type="email"
                 id="email"
                 placeholder="Example@gmail.com"
-                {...Register("email", {
-                  onchange: (e) => setEmail(e.target.value),
-                  required: true,
-                  value: email,
-                })}
+                {...register("email")}
               />
+              {errors.email && (
+                <span className="error">{errors.email.message}</span>
+              )}
             </div>
+
             <div className="form-group">
               <label>Password</label>
               <div className="password-input-container">
@@ -89,11 +84,7 @@ const Login = () => {
                   type={showPassword ? "text" : "password"}
                   id="password"
                   placeholder="********"
-                  {...Register("password", {
-                    onchange: (e) => setPassword(e.target.value),
-                    required: true,
-                    value: password,
-                  })}
+                  {...register("password")}
                 />
                 <button
                   type="button"
@@ -105,11 +96,20 @@ const Login = () => {
                   ></i>
                 </button>
               </div>
+              {errors.password && (
+                <span className="error">{errors.password.message}</span>
+              )}
             </div>
-            <button type="submit" className="sign-in-button">
-              Sign-in
+            {error && <div className="error">{error}</div>}
+
+            <button
+              type="submit"
+              className="sign-in-button"
+              disabled={isLoading}
+            >
+              {isLoading ? "Signing In..." : "Sign-in"}
             </button>
-            {errorMsg && <div className="error">{errorMsg}</div>}
+
             <p className="create-account">
               Don't have an account yet? <a href="/register">Sign-Up</a>
             </p>

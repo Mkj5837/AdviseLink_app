@@ -1,11 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { UsersData } from "../ExampleData";
 import axios from "axios";
 
 // ------------------- Initial state
 const initialState = {
   user: null, // Use 'user' for the current logged-in user (as used in extraReducers)
-  value: null,
+  usersList: [], // Use 'usersList' for the array of all users
   isLoading: false,
   isError: false,
   isSuccess: false,
@@ -13,8 +12,8 @@ const initialState = {
 };
 console.log(initialState);
 
-const server_port =
-  "http://localhost:3001" || "http://localhost:4000" || "http://localhost:5000";
+const server_port = "http://localhost:3001";
+// Or if you use a config file, make sure it points to 3001:
 
 //---------------------- THUNKS -----------------------------
 //Register Thunk
@@ -29,14 +28,12 @@ export const registerUser = createAsyncThunk(
         firstName: userData.firstName,
         middleName: userData.middleName,
         lastName: userData.lastName,
-        gender: userData.gender,
         email: userData.email,
         password: userData.password,
         userType: userData.userType,
       });
       console.log(response);
-      const user = response.data.user; //retrieve the response from the server
-      return user; //return the response from the server as payload to the thunk
+      return response.data.user; //return the response from the server as payload to the thunk
     } catch (error) {
       console.log(error);
       const errorMessage =
@@ -48,7 +45,6 @@ export const registerUser = createAsyncThunk(
 );
 
 //Login Thunk
-//This thunk is used to login a user
 export const login = createAsyncThunk(
   "users/login",
   async (userData, { rejectWithValue }) => {
@@ -85,7 +81,8 @@ export const login = createAsyncThunk(
 //Logout Thunk
 export const logout = createAsyncThunk(
   "users/logout",
-  async ({ rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
+    //logout takes no payload,so i've used "_" instead.
     try {
       const response = await axios.post(`${server_port}/logout`);
       return response.data;
@@ -120,28 +117,21 @@ export const userSlice = createSlice({
   name: "users",
   initialState,
   reducers: {
-    // clearUserError: (state) => {
-    //   state.isError = null;
-    // },
-    // resetUserState: (state) => {
-    //   state.loading = false;
-    //   state.isError = null;
-    // },
     addUser: (state, action) => {
-      state.value.push(action.payload);
+      state.usersList.push(action.payload);
     },
     deleteUser: (state, action) => {
       // Remove a user by ID number from the state.
-      if (Array.isArray(state.value)) {
-        state.value = state.value.filter(
+      if (Array.isArray(state.usersList)) {
+        state.usersList = state.usersList.filter(
           (user) => user.idNumber !== action.payload
         );
       }
     },
     updateUser: (state, action) => {
       // Iterate the array and compare the email with the email from the payload
-      if (Array.isArray(state.value)) {
-        state.value = state.value.map((user) =>
+      if (Array.isArray(state.usersList)) {
+        state.usersList = state.usersList.map((user) =>
           user.email === action.payload.email
             ? {
                 ...user,
@@ -155,6 +145,7 @@ export const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      //REGISTER cases
       .addCase(registerUser.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -170,7 +161,7 @@ export const userSlice = createSlice({
         state.isError = true;
         state.error = action.payload;
       })
-      //start of login cases
+      //LOGIN cases
       .addCase(login.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -186,7 +177,7 @@ export const userSlice = createSlice({
         state.isError = true;
         state.error = action.payload;
       })
-      // Add cases for updateUserProfile
+      //UPDATE USER cases
       .addCase(updateUserProfile.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -202,7 +193,7 @@ export const userSlice = createSlice({
         state.error = action.payload;
         console.log("Update error:", action.payload);
       })
-      //Cases for logout
+      //LOGOUT cases
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
         state.error = null;
@@ -211,6 +202,8 @@ export const userSlice = createSlice({
         state.user = null;
         state.isLoading = false;
         state.isSuccess = false;
+        state.isError = false;
+        state.error = null;
       })
       .addCase(logout.rejected, (state, action) => {
         state.isLoading = false;

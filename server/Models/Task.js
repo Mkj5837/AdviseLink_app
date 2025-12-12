@@ -1,17 +1,16 @@
 const mongoose = require("mongoose");
 
 const taskSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
     required: true,
   },
-  student: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
+  description: {
+    type: String,
     required: true,
   },
   weight: {
-    type: String,
+    type: Number,
     required: true,
   },
   deadline: {
@@ -23,10 +22,7 @@ const taskSchema = new mongoose.Schema({
     enum: ["pending", "completed"],
     default: "pending",
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
+  timestamp: true,
 });
 
-module.exports = mongoose.model("Task", taskSchema);
+module.exports = mongoose.model("tasks", taskSchema);

@@ -6,11 +6,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useSelector, useDispatch } from "react-redux";
 import { registerUser } from "../Features/userSlice";
+import { unwrapResult } from "@reduxjs/toolkit"; // Helper for checking thunk result
 
 const Register = () => {
-  // Retrieve the current value of the state and assign it to a variable.
-  const userList = useSelector((state) => state.user.value);
-  console.log('User List:', userList);
+  const { isLoading, error } = useSelector((state) => state.user || {});
 
   // Create the navigate and dispatch function hooks
   const navigate = useNavigate();
@@ -25,24 +24,16 @@ const Register = () => {
   });
 
   const onSubmit = async (data) => {
+    //Prepare data: confirmPassword is client-side only, exclude it from the final payload
+    const { confirmPassword, ...userData } = data;
     try {
-      const userData = {
-        idNumber: data.idNumber,
-        firstName: data.firstName,
-        middleName: data.middleName,
-        lastName: data.lastName,
-        gender: data.gender,
-        email: data.email,
-        password: data.password,
-        confirmPassword: data.confirmPassword,
-        userType: data.userType,
-      };
-      console.log("Form submitted:", data);
-      console.log("Validation all good.");
-      dispatch(registerUser(userData));
-      navigate("/login");
-    } catch (error) {
-      console.error("Registration error:", error);
+      console.log("Form submitted: Data passed client-side validation.");
+      const resultAction = await dispatch(registerUser(userData));
+      // Unwraps the action payload; throws an error if the thunk was rejected
+      unwrapResult(resultAction);
+      navigate("/");
+    } catch (rejectedValueOrError) {
+      console.error("Registration FAILED:", rejectedValueOrError);
     }
   };
 
@@ -98,7 +89,7 @@ const Register = () => {
             )}
           </div>
 
-          <div className="form-group gender-group">
+          {/* <div className="form-group gender-group">
             <label>Gender</label>
             <div className="gender-options">
               <label>
@@ -113,7 +104,7 @@ const Register = () => {
             {errors.gender && (
               <span className="error">{errors.gender.message}</span>
             )}
-          </div>
+          </div> */}
 
           <div className="form-group">
             <input type="email" {...register("email")} placeholder="Email" />
@@ -144,6 +135,12 @@ const Register = () => {
             )}
           </div>
 
+          {/* Display Loading and Server Error Feedback */}
+          {isLoading && (
+            <p className="status-message">Registering user... please wait.</p>
+          )}
+          {error && <p className="server-error-message">Error: {error}</p>}
+
           <div className="form-group user-type-group">
             <label>Type of User</label>
             <div className="user-type-options">
@@ -165,8 +162,12 @@ const Register = () => {
             By clicking Register, you agree to our Privacy Policy
           </p>
 
-          <button type="submit" className="register-button">
-            Register
+          <button
+            type="submit"
+            className="register-button"
+            disabled={isLoading}
+          >
+            {isLoading ? "Processing..." : "Register"}
           </button>
 
           <p className="login-link">

@@ -1,31 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import "./Profile.css";
-import { useNavigate } from "react-router-dom";
-import { Row, Col } from "reactstrap";
+import { Row, Col, Container } from "reactstrap";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { userSchemaValidation } from "../Validation/UserValidation";
+import { userSchemaValidation } from "../Validations/UserValidation";
 import { updateUserProfile } from "../Features/userSlice";
-import Register from "./Register";
+import { unwrapResult } from "@reduxjs/toolkit";
+import { DEFAULT_AVATAR_URLS } from "../avatars";
+import "../css/Profile.css";
+import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  // Retrieve user details from Redux store
-  const user = useSelector((state) => state.user.value);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  // Initialize state variables with Redux values
-  const [email, setEmail] = useState(user?.email || "");
-  const [firstName, setFirstName] = useState(user?.firstName || "");
-  const [middleName, setMiddleName] = useState(user?.middleName || "");
-  const [lastName, setLastName] = useState(user?.lastName || "");
-  const [password, setPassword] = useState(user?.password || "");
-  const [profilePic, setProfilePic] = useState(null);
+  //access the current user object
+  const {
+    user: currentUser,
+    isLoading,
+    error,
+  } = useSelector((state) => state.user);
 
-  const navigate = useNavigate(); // Create navigate variable
-  const dispatch = useDispatch(); // Create dispatch variable
+  //state for component logic
   const [editMode, setEditMode] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [selectedAvatarUrl, setSelectedAvatarUrl] = useState(
+    currentUser?.profilePic
+  );
 
   const {
     register,
@@ -33,196 +33,186 @@ const Profile = () => {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: yupResolver(userSchemaValidation),
-    defaultValues: user,
+    defaultValues: {
+      firstName: currentUser?.firstName || "",
+      lastName: currentUser?.lastName || "",
+      middleName: currentUser?.middleName || "",
+    },
   });
 
+  //reset form values when edit mode is toggled or user data updates.
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
-    } else {
-      reset(user);
-      // Update local state if user changes
-      setEmail(user.email || "");
-      setFirstName(user.firstName || "");
-      setMiddleName(user.middleName || "");
-      setLastName(user.lastName || "");
-      setPassword(user.password || "");
+    if (editMode && currentUser) {
+      reset({
+        firstName: currentUser.firstName || "",
+        lastName: currentUser.lastName || "",
+        middleName: currentUser.middleName || "",
+      });
+      setSelectedAvatarUrl(currentUser.profilePic);
     }
-  }, [user, navigate, reset]);
+  }, [editMode, currentUser, reset]);
 
-  // Function to handle file selection
-  const handleFileChange = (event) => {
-    setProfilePic(event.target.files[0]);
-  };
+  //redirect if user is somehow null (should be protected by ProtectedRoute)
+  if (!currentUser) return <div>Loading...</div>;
 
-  // Function to handle updating the user profile
-  const handleUpdate = (event) => {
-    event.preventDefault();
-
-    // Prepare the user data object with the current user's email and updated details
-    const userData = {
-      email, // from state
-      firstName, // from state
-      middleName, // from state
-      lastName, // from state
-      password, // from state
-      profilePic, // include the selected file
+  const onSubmit = async (data) => {
+    //only update name fields if they are different.
+    const dataToSend = {
+      //send the identifying email
+      email: currentUser.email,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      middleName: data.middleName,
+      //send the selected URL to the server api.
+      profilePicUrl: selectedAvatarUrl,
     };
-
-    // Dispatch the updateUserProfile action to update the user profile in the Redux store
-    dispatch(updateUserProfile(userData));
-    alert("Profile Updated.");
-
-    // Navigate back to the profile page after the update is completed
-    setEditMode(false);
-    // Optionally: navigate("/profile");
+    try {
+      const result = await dispatch(updateUserProfile(dataToSend));
+      unwrapResult(result);
+      setEditMode(false); //on successful update, exit edit mode.
+      console.log("Profile updated successfully.");
+    } catch (rejectedValueOrError) {
+      console.error("Update FAILED:", rejectedValueOrError);
+    }
   };
-
-  if (!user) {
-    return <div>Please log in to view your profile.</div>;
-  }
 
   return (
-    <div className="container">
-      <div className="profile-card">
-        <Row>
-          {/* Left Column: Avatar and Name */}
-          <Col md={4} className="profile-left">
-            <div className="profile-avatar">
-              <span>
-                {firstName?.[0]}
-                {lastName?.[0]}
-              </span>
-            </div>
+    <Container className="profile-container">
+      <Row>
+        <Col md="12" className="profile-header">
+          <h1>My Profile</h1>
+        </Col>
+      </Row>
+      <Row className="profile-content">
+        <Col md="4" className="profile-sidebar">
+          <div className="profile-pic-area">
+            {/* Display current profile picture */}
+            <img
+              src={currentUser.profilePic}
+              alt="Profile"
+              className="profile-pic"
+            />
             <h2>
-              {firstName} {middleName} {lastName}
+              {currentUser.firstName} {currentUser.lastName}
             </h2>
-            <p className="profile-role">{user?.userType}</p>
-          </Col>
-          {/* Right Column: Details and Actions */}
-          <Col md={8} className="profile-right">
-            {!editMode ? (
-              <>
-                <div className="profile-info">
-                  <div className="profile-info-row">
-                    <span className="profile-label">Email:</span>
-                    <span>{email}</span>
+            <p className="user-type">({currentUser.userType})</p>
+          </div>
+
+          {/* server error message */}
+          {error && <div className="error-message">{error}</div>}
+          {isLoading && (
+            <div className="loading-message">Saving changes...</div>
+          )}
+
+          <button
+            className="profile-edit-btn"
+            onClick={() => setEditMode(true)}
+            disabled={editMode}
+          >
+            Edit Profile
+          </button>
+        </Col>
+
+        <Col md="8" className="profile-details-area">
+          <h3>Personal Details</h3>
+
+          {!editMode && (
+            <div className="details-view">
+              <p>
+                <strong>ID Number:</strong> {currentUser.idNumber}
+              </p>
+              <p>
+                <strong>Email:</strong> {currentUser.email}
+              </p>
+              <p>
+                <strong>First Name:</strong> {currentUser.firstName}
+              </p>
+              <p>
+                <strong>Middle Name:</strong> {currentUser.middleName}
+              </p>
+              <p>
+                <strong>Last Name:</strong> {currentUser.lastName}
+              </p>
+            </div>
+          )}
+
+          {editMode && (
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="profile-edit-form"
+            >
+              <Row>
+                <Col md="6">
+                  <div className="form-group">
+                    <label>First Name</label>
+                    <input type="text" {...register("firstName")} />
+                    {errors.firstName && (
+                      <span className="error">{errors.firstName.message}</span>
+                    )}
                   </div>
-                  <div className="profile-info-row">
-                    <span className="profile-label">Password:</span>
-                    <span>{password ? "********" : ""}</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((prev) => !prev)}
-                      style={{ marginLeft: "10px" }}
-                    >
-                      {showPassword ? "Hide" : "Show"}
-                    </button>
+                </Col>
+                <Col md="6">
+                  <div className="form-group">
+                    <label>Middle Name</label>
+                    <input type="text" {...register("middleName")} />
+                    {errors.middleName && (
+                      <span className="error">{errors.middleName.message}</span>
+                    )}
                   </div>
+                </Col>
+              </Row>
+              <Row>
+                <Col md="6">
+                  <div className="form-group">
+                    <label>Last Name</label>
+                    <input type="text" {...register("lastName")} />
+                    {errors.lastName && (
+                      <span className="error">{errors.lastName.message}</span>
+                    )}
+                  </div>
+                </Col>
+              </Row>
+
+              {/*avatar selection grid (Replacing file upload) */}
+              <div className="avatar-selection-group">
+                <label>Select New Avatar</label>
+                <div className="avatar-grid">
+                  {DEFAULT_AVATAR_URLS.map((url) => (
+                    <img
+                      key={url}
+                      src={url}
+                      alt="Avatar option"
+                      className={`avatar-option ${
+                        selectedAvatarUrl === url ? "selected" : ""
+                      }`}
+                      onClick={() => setSelectedAvatarUrl(url)}
+                    />
+                  ))}
                 </div>
-                <div className="profile-actions">
-                  <button
-                    className="profile-edit-btn"
-                    onClick={() => setEditMode(true)}
-                  >
-                    Edit Profile
-                  </button>
-                  <button className="profile-logout-btn">Logout</button>
-                </div>
-                {/* Removed the table of users from here */}
-              </>
-            ) : (
-              <form
-                className="profile-edit-form"
-                onSubmit={handleSubmit(handleUpdate)}
-              >
-                <div className="form-group">
-                  <label>Email</label>
-                  <input
-                    type="email"
-                    {...Register("email")}
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                  {errors.email && (
-                    <span className="error">{errors.email.message}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>First Name</label>
-                  <input
-                    type="text"
-                    {...Register("firstName")}
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                  {errors.firstName && (
-                    <span className="error">{errors.firstName.message}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Middle Name</label>
-                  <input
-                    type="text"
-                    {...Register("middleName")}
-                    value={middleName}
-                    onChange={(e) => setMiddleName(e.target.value)}
-                  />
-                  {errors.middleName && (
-                    <span className="error">{errors.middleName.message}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Last Name</label>
-                  <input
-                    type="text"
-                    {...Register("lastName")}
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                  {errors.lastName && (
-                    <span className="error">{errors.lastName.message}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Password</label>
-                  <input
-                    type="password"
-                    {...Register("password")}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  {errors.password && (
-                    <span className="error">{errors.password.message}</span>
-                  )}
-                </div>
-                <div className="form-group">
-                  <label>Profile Picture</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                  />
-                </div>
-                <div className="profile-actions">
-                  <button type="submit" className="profile-edit-btn">
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    className="profile-logout-btn"
-                    onClick={() => setEditMode(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </form>
-            )}
-          </Col>
-        </Row>
-      </div>
-    </div>
+              </div>
+
+              <div className="profile-actions">
+                <button
+                  type="submit"
+                  className="profile-edit-btn"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </button>
+                <button
+                  type="button"
+                  className="profile-logout-btn"
+                  onClick={() => setEditMode(false)}
+                  disabled={isLoading}
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          )}
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

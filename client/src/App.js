@@ -16,9 +16,10 @@ import Register from "./Components/Register";
 import About from "./Components/About";
 import UserList from "./Components/UserList";
 import UpdateUser from "./Components/UpdateUser";
+import Profile from "./Components/Profile";
 
 const App = () => {
-  // Get the current user from Redux state
+  //get the current user from Redux state
   const user = useSelector((state) => state.user.user);
   const email = useSelector((state) => state.user.user?.email);
   const userType = useSelector((state) => state.user.user?.userType);
@@ -26,7 +27,7 @@ const App = () => {
 
   useEffect(() => {
     try {
-      // Redirect based on userType
+      //redirect based on userType
       if (userType === "student") {
         navigate("/student-dashboard");
       } else if (userType === "advisor") {
@@ -41,23 +42,24 @@ const App = () => {
   return (
     <Container fluid>
       <div className="App">
-          {/* protected route */}
-          {email ? <Header /> : null}
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/student-dashboard" element={<StudentDashboard />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/userlist" element={<UserList />} />
-            <Route
-              path="/update/:email/:name/:password"
-              element={<UpdateUser />}
-            />
-          </Routes>
-          {/* Public/unprotected  route */}
-          <Footer />
+        {/* protected route */}
+        {email ? <Header /> : null}
+        <Routes>
+          {/* public routes */}
+          <Route path="/" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/userlist" element={<UserList />} />
+          <Route path="/profile" element={<Profile />} />
+          {/* <Route
+            path="/update/:email/:name/:password"
+            element={<UpdateUser />}
+          /> */}
+        </Routes>
+        {/* Public/unprotected  route */}
+        <Footer />
       </div>
     </Container>
   );

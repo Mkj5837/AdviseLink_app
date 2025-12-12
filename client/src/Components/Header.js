@@ -1,23 +1,36 @@
-import { Navbar, Nav, NavItem, NavLink } from "reactstrap";
+import { Navbar, Nav, NavItem } from "reactstrap";
 import logo from "../Images/AdviseLinkLogo.png";
 import { useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../Features/userSlice";
 import { useSelector } from "react-redux";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user.value);
+
+  //retrieve the current user object:
+  const currentUser = useSelector((state) => state.user.user);
+
+  //dynamically determine the home path based on userType
+  const homePath =
+    currentUser?.userType === "student"
+      ? "/student-dashboard" //route for students
+      : currentUser?.userType === "advisor"
+      ? "/dashboard" //route for advisors
+      : "/"; //default to root (Login) if userType is undefined
+
   // Define handleLogout function
-  const handleLogout = () => {
-    try{dispatch(logout());
-    console.log("handleLogout has been dispatched");
-    navigate("/");// Redirect to login page after logout
-    }catch(error){
-      console.log(error);
+  const handleLogout = async () => {
+    try {
+      const resultAction = await dispatch(logout());
+      unwrapResult(resultAction); //Unwrap the result. If the server returns 200, this succeeds.
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed, redirecting anyway for UX:", error);
+      navigate("/"); // Redirects to root URL even on network failure.
     }
-     
   };
 
   return (
@@ -29,10 +42,13 @@ const Header = () => {
               <img src={logo} className="logo" alt="AdviseLink Logo" />
             </p>
           </NavItem>
-          {user && (
+
+          {/*Use currentUser for conditional rendering */}
+          {currentUser && (
             <>
               <NavItem>
-                <Link to="/login">Home</Link>
+                {/* call the function 'homepath' to determine what the homepage route is. */}
+                <Link to={homePath}>Home</Link>
               </NavItem>
 
               <NavItem>
@@ -49,14 +65,13 @@ const Header = () => {
                     cursor: "pointer",
                     padding: 0,
                   }}
-                  onClick={handleLogout} // Event handler calls handleLogout
+                  onClick={handleLogout}
                 >
                   Logout
                 </button>
               </NavItem>
             </>
           )}
-          {/* end of logic */}
         </Nav>
       </Navbar>
     </>
