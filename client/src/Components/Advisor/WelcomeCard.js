@@ -8,9 +8,6 @@ const WelcomeCard = () => {
         <p>You have connected with 60% of your advisees this week!</p>
         {/* <button className="learn-more-btn">Learn More</button> */}
       </div>
-      <div className="welcome-image">
-        <img src="/advisor-illustration.png" alt="Advisor" />
-      </div>
     </div>
   );
 };

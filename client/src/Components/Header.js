@@ -35,7 +35,7 @@ const Header = () => {
 
   return (
     <>
-      <Navbar className="header">
+      <Navbar color="light" light expand="md">
         <Nav>
           <NavItem>
             <p>

@@ -13,7 +13,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if(!user){
+    if (!user) {
       navigate("/login");
     }
   }, [user, navigate]);
@@ -23,67 +23,54 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <div className="sidebar">
-        <div className="logo-section">
-          <img src={logo} alt="AdviseLink" className="dashboard-logo" />
-          <span>AdviseLink</span>
-        </div>
-        {/* sidebar end. */} 
+        {/* sidebar end. */}
         <nav className="sidebar-nav">
           <a href="#" className="nav-item active">
             <i className="fas fa-home"></i>
             Dashboard
           </a>
           <a href="#" className="nav-item">
-            <i className="fas fa-user-plus"></i>
-            Add Advisee
-          </a>
-          <a href="#" className="nav-item">
             <i className="fas fa-calendar"></i>
-            Meeting Schedule
+            Meeting Requests
           </a>
-          <a href="#" className="nav-item">
+          {/* <a href="#" className="nav-item">
             <i className="fas fa-search"></i>
             Search Academic Plan
           </a>
           <a href="#" className="nav-item">
             <i className="fas fa-user-search"></i>
             Search Advisee
-          </a>
+          </a> */}
           <a href="#" className="nav-item">
             <i className="fas fa-chart-bar"></i>
-            Reports
+            Advisee List
           </a>
-          <a href="#" className="nav-item">
+          <a href="/about " className="nav-item">
             <i className="fas fa-info-circle"></i>
-            Advisee Info Page
+            About
           </a>
         </nav>
       </div>
 
       <div className="main-content">
-        <header className="dashboard-header">
+        {/* <header className="dashboard-header">
           <h1>Dashboard</h1>
-          <div className="user-menu">
-            <span>Teacher</span>
-            <img src={stud1} alt="User" className="user-avatar" />
-          </div>
-        </header>
+        </header> */}
 
         <div className="dashboard-grid">
           <WelcomeCard />
-
           <div className="stats-cards">
             <div className="stat-card">
               <h3>Advisees</h3>
-              <span className="stat-number">359</span>
+              <span className="stat-number">15</span>
             </div>
             <div className="stat-card">
-              <h3>Tasks</h3>
+              <h3>Signed</h3>
               <span className="stat-number">12</span>
             </div>
             <div className="stat-card">
-              <h3>Today</h3>
-              <span className="stat-number">04</span>
+              <h3>Remain</h3>
+              <span className="stat-number">3</span>
             </div>
           </div>
 

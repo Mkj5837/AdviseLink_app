@@ -22,7 +22,7 @@ const Home = () => {
 
   return (
     <div className="home-page">
-      <Header />
+      {/* <Header /> */}
       <Container className="my-5">
         <Row className="align-items-center">
           <Col md={6}>

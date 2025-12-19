@@ -4,21 +4,26 @@ import logo from "../../Images/AdviseLinkLogo.png";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { use } from "react";
+import { unwrapResult } from "@reduxjs/toolkit";
+import { userimg } from "../../Images/blank-pfp.png";
 
 const StudentDashboard = () => {
-  const user = useSelector((state) => state.user.user);
+  const currentUser = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!user) {
-      navigate("/login");
+    if (!currentUser) {
+      navigate("/");
     }
-  }, [user, navigate]);
+  }, [currentUser, navigate]);
 
   const studentInfo = {
-    name: "George Washington",
-    id: "16j21114",
-    major: "Software Engineering",
+    name: currentUser
+      ? `${currentUser.firstName} ${currentUser.lastName}`
+      : "Student Name",
+    id: currentUser ? currentUser.idNumber : "123456789",
+    avatar: currentUser ? currentUser.profilePic : "/blank-pfp.png",
   };
 
   const tasks = [
@@ -49,9 +54,6 @@ const StudentDashboard = () => {
   return (
     <div className="student-dashboard">
       <div className="sidebar">
-        <div className="logo">
-          <img src={logo} alt="AdviseLink" />
-        </div>
         <nav className="nav-menu">
           <a href="#" className="nav-item active">
             <i className="fas fa-home"></i>
@@ -65,14 +67,14 @@ const StudentDashboard = () => {
             <i className="fas fa-file-alt"></i>
             My Academic Plan
           </a>
-          <a href="#" className="nav-item">
-            <i className="fas fa-folder"></i>
-            Documents
+          <a href="/" className="nav-item">
+            <i className="fas fa-info-circle"></i>
+            About
           </a>
-          <a href="#" className="nav-item">
+          {/* <a href="#" className="nav-item">
             <i className="fas fa-chart-line"></i>
             GPA Improvement Plan
-          </a>
+          </a> */}
         </nav>
       </div>
 
@@ -80,14 +82,13 @@ const StudentDashboard = () => {
         <div className="student-profile">
           <div className="profile-info">
             <img
-              src="/student-photo.jpg"
+              src={studentInfo.avatar}
               alt="Student"
               className="profile-photo"
             />
             <div className="info">
               <h2>{studentInfo.name}</h2>
               <p>ID: {studentInfo.id}</p>
-              <p>Major: {studentInfo.major}</p>
             </div>
           </div>
           <button className="gpa-plan-btn">AI GPA improvement plan</button>
@@ -112,37 +113,16 @@ const StudentDashboard = () => {
         </div>
 
         <button className="book-meeting-btn">
-          <i className="fas fa-calendar-plus"></i>
+          <i className="fas fa-info-circle"></i>
           Book Meeting With Advisor
         </button>
-
-        <div className="calendar-section">
-          <div className="calendar-header">
-            <button className="prev-month">
-              <i className="fas fa-chevron-left"></i>
-            </button>
-            <h3>April 2025</h3>
-            <button className="next-month">
-              <i className="fas fa-chevron-right"></i>
-            </button>
-          </div>
-          {/* Calendar grid would go here */}
-        </div>
 
         <div className="semester-weeks">
           <h3>Semester Weeks</h3>
           <div className="weeks-progress">
-            <div className="weeks-numbers">
-              <span className="active">1</span>
-              <span>2</span>
-              <span className="active">3</span>
-              <span className="active">4</span>
-              <span>5</span>
-              <span className="active">6</span>
-            </div>
             <div className="progress-stats">
               <div className="finished">
-                <span>9</span>
+                <span>8</span>
                 <p>Finished</p>
               </div>
               <div className="remaining">
