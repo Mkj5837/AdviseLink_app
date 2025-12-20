@@ -19,11 +19,12 @@ app.use(express.json());
 // Middleware
 const corsOptions = {
   origin: process.env.CLIENT_URL || ENV.CLIENT_URL || "http://localhost:3000",
-  methods: "GET,PUT,POST,DELETE",
+  methods: "GET,PUT,POST,DELETE,OPTIONS",
   credentials: true,
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 // Database connection (prefers environment variable)
 const connectString =
