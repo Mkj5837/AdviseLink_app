@@ -191,3 +191,41 @@
 .avatar-option:hover {
   transform: translateY(-2px);
 }
+/* Ensure the Navbar stretches full width but stays clean */
+.navbar {
+  padding: 0.5rem 2rem !important;
+  border-bottom: 1px solid #eee;
+  background-color: #ffffff !important;
+}
+
+/* Style the navigation items */
+.nav-item {
+  margin-left: 20px; /* Space between the links */
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: #333 !important;
+  font-weight: 500;
+  transition: color 0.3s;
+}
+
+.nav-link:hover {
+  color: #007bff !important; /* Brand blue highlight */
+}
+
+/* Style the logout button in the header */
+.header-logout-btn {
+  background: transparent;
+  border: none;
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 8px 0;
+  transition: color 0.3s;
+}
+
+.header-logout-btn:hover {
+  color: #dc3545;
+}

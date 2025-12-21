@@ -10,8 +10,12 @@ const ProtectedRoute = ({ children, userType }) => {
   if (!user) return <Navigate to="/login" replace />;
 
   // If a specific role is required, check `user.userType`
-  if (userType && user.userType !== userType)
-    return <Navigate to="/" replace />;
+  if (userType) {
+    const allowedRoles = Array.isArray(userType) ? userType : [userType];
+    if (!allowedRoles.includes(user.userType)) {
+      return <Navigate to="/" replace />;
+    }
+  }
 
   return children;
 };

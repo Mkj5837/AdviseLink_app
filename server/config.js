@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-dotenv.config(); // Retrieve the environment variables.
+dotenv.config();
 
 export const PORT = process.env.PORT;
 export const DB_USER = process.env.DB_USER;

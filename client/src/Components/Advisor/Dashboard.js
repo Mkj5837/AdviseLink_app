@@ -1,106 +1,83 @@
-import React, { useEffect } from "react";
-import { Outlet, Link, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
+import React, { useEffect, useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import "../../css/Dashboard.css";
 import WelcomeCard from "./WelcomeCard";
-import RequestsSection from "./Requests";
 import AdviseesList from "./AdviseeList";
-import logo from "../../Images/AdviseLinkLogo.png";
-import stud1 from "../../Images/studImge.jpg";
-import { logout } from "../../Features/userSlice";
-import { persistor } from "../../store/store";
+import api from "../../api/axios";
 
 const Dashboard = () => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+
+  // States for real data counts
+  const [adviseeCount, setAdviseeCount] = useState(0);
+  const [meetingCount, setMeetingCount] = useState(0);
 
   useEffect(() => {
     if (!user) {
       navigate("/login");
+    } else {
+      fetchDashboardStats();
     }
   }, [user, navigate]);
 
-  const handleLogout = async () => {
+  const fetchDashboardStats = async () => {
     try {
-      await dispatch(logout());
-      await persistor.purge();
-    } catch (e) {
-      console.warn("Logout encountered an error, proceeding to login.", e);
-    } finally {
-      navigate("/login", { replace: true });
+      const advisorIdentifier = (
+        user.idNumber ||
+        user.email ||
+        user._id ||
+        ""
+      ).toString();
+      const advisorObjectId = user._id?.toString();
+      if (!advisorIdentifier) return;
+
+      // Fetch actual advisees for this advisor
+      const adviseeRes = await api.get(`/myAdvisees/${advisorIdentifier}`);
+      setAdviseeCount(Array.isArray(adviseeRes.data) ? adviseeRes.data.length : 0);
+
+      // Fetching scheduled meetings count
+      if (advisorObjectId) {
+        const meetingRes = await api.get(
+          `/meetings?advisorId=${advisorObjectId}&status=scheduled`
+        );
+        setMeetingCount(meetingRes.data.length);
+      } else {
+        setMeetingCount(0);
+      }
+    } catch (err) {
+      console.error("Error fetching stats:", err);
+      setAdviseeCount(0);
+      setMeetingCount(0);
     }
   };
 
   return (
     <div className="dashboard-container">
-      <div className="sidebar">
-        {/* sidebar end. */}
-        {/* <a href="#" className="nav-item">
-            <i className="fas fa-search"></i>
-            Search Academic Plan
-          </a>
-          <a href="#" className="nav-item">
-            <i className="fas fa-user-search"></i>
-            Search Advisee
-          </a> */}
-        <nav className="sidebar-nav">
-          <Link to="/dashboard" className="nav-item active">
-            <i className="fas fa-home"></i>
-            Dashboard
-          </Link>
-          <Link to="/advisees" className="nav-item">
-            <i className="fas fa-user-friends"></i>
-            Advisees
-          </Link>
-          <Link to="/tasks" className="nav-item">
-            <i className="fas fa-tasks"></i>
-            Tasks
-          </Link>
-          <Link to="/meetings" className="nav-item">
-            <i className="fas fa-calendar"></i>
-            Meeting Requests
-          </Link>
-          <Link to="/about" className="nav-item">
-            <i className="fas fa-info-circle"></i>
-            About
-          </Link>
-          <button type="button" className="nav-item" onClick={handleLogout}>
-            <i className="fas fa-sign-out-alt"></i>
-            Logout
-          </button>
-        </nav>
-      </div>
-
       <div className="main-content">
-        {/* <header className="dashboard-header">
-          <h1>Dashboard</h1>
-        </header> */}
-
         <div className="dashboard-grid">
+          {/* 1. Welcome Card (Updated internally for name) */}
           <WelcomeCard />
-          <div className="stats-cards">
+
+          {/* 2. Simplified Stats: Only 2 Cards */}
+          <div className="stats-cards-two-column">
             <div className="stat-card">
-              <h3>Advisees</h3>
-              <span className="stat-number">15</span>
+              <h3>Total Students</h3>
+              <span className="stat-number">{adviseeCount}</span>
             </div>
             <div className="stat-card">
-              <h3>Signed</h3>
-              <span className="stat-number">12</span>
-            </div>
-            <div className="stat-card">
-              <h3>Remain</h3>
-              <span className="stat-number">3</span>
+              <h3>Scheduled Meetings</h3>
+              <span className="stat-number">{meetingCount}</span>
             </div>
           </div>
 
-          <div className="dashboard-sections">
-            <RequestsSection />
+          {/* 3. Advisee list */}
+          <div className="dashboard-sections-simple">
             <AdviseesList />
           </div>
         </div>
 
-        {/* Outlet for nested dashboard child routes (e.g. /dashboard/profile) */}
         <Outlet />
       </div>
     </div>

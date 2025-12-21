@@ -10,6 +10,7 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { loginSchemaValidation } from "../Validations/LoginValidation";
 import { unwrapResult } from "@reduxjs/toolkit";
+import { useState } from "react";
 
 const Login = () => {
   const dispatch = useDispatch();
@@ -25,13 +26,13 @@ const Login = () => {
     resolver: yupResolver(loginSchemaValidation),
   });
 
-  //State for visual feedback (can often be removed if using Redux flags)
-  const [showPassword, setShowPassword] = React.useState(false);
+  //State for visual feedback of password visibility
+  const [showPassword, setShowPassword] = useState(false);
 
   const onSubmit = async (data) => {
     try {
-      //Dispatch the thunk and await its result
-      const resultAction = await dispatch(login(data));
+      //Dispatch the thunk
+      const resultAction = dispatch(login(data));
 
       //unwrapResult handles success (returns payload) or rejection (throws error)
       const userPayload = unwrapResult(resultAction);
@@ -70,7 +71,7 @@ const Login = () => {
               <input
                 type="email"
                 id="email"
-                placeholder="Example@gmail.com"
+                placeholder="example@utas.edu.om"
                 {...register("email")}
               />
               {errors.email && (

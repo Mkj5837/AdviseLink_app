@@ -59,6 +59,11 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    advisorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "users",
+      default: null,
+    },
   },
   {
     timestamps: true, // This enables automatic createdAt and updatedAt fields

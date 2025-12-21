@@ -77,3 +77,17 @@
 .login-link a:hover {
   text-decoration: underline;
 }
+
+.form-group {
+  position: relative; /*ensuring the button stays inside this specific div */
+  margin-bottom: 15px;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 21px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

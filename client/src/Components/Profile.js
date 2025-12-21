@@ -8,7 +8,7 @@ import { updateUserProfile } from "../Features/userSlice";
 import { unwrapResult } from "@reduxjs/toolkit";
 import { DEFAULT_AVATAR_URLS } from "../avatars";
 import "../css/Profile.css";
-// removed unused navigate
+
 
 const Profile = () => {
   const dispatch = useDispatch();
@@ -156,7 +156,7 @@ const Profile = () => {
           {!editMode && (
             <div className="details-view">
               <p>
-                <strong>ID Number:</strong> {currentUser.idNumber}
+                <strong>ID:</strong> {currentUser.idNumber}
               </p>
               <p>
                 <strong>Email:</strong> {currentUser.email}

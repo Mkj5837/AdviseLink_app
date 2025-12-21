@@ -6,7 +6,8 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useSelector, useDispatch } from "react-redux";
 import { registerUser } from "../Features/userSlice";
-import { unwrapResult } from "@reduxjs/toolkit"; // Helper for checking thunk result
+import { unwrapResult } from "@reduxjs/toolkit";
+import { useState } from "react";
 
 const Register = () => {
   const { isLoading, error } = useSelector((state) => state.user || {});
@@ -22,6 +23,11 @@ const Register = () => {
   } = useForm({
     resolver: yupResolver(userSchemaValidation),
   });
+
+  //State for visual feedback of password visibility
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const onSubmit = async (data) => {
     //Prepare data: confirmPassword is client-side only, exclude it from the final payload
@@ -44,6 +50,7 @@ const Register = () => {
         <h1>Registration Form</h1>
 
         <form onSubmit={handleSubmit(onSubmit)} className="register-form">
+          {/* ---------- ID NUMBER ---------- */}
           <div className="form-group">
             <input
               type="text"
@@ -54,7 +61,7 @@ const Register = () => {
               <span className="error">{errors.idNumber.message}</span>
             )}
           </div>
-
+          {/* ---------- FIRST NAME  ---------- */}
           <div className="form-group">
             <input
               type="text"
@@ -65,7 +72,7 @@ const Register = () => {
               <span className="error">{errors.firstName.message}</span>
             )}
           </div>
-
+          {/* ---------- MIDDLE NAME  ---------- */}
           <div className="form-group">
             <input
               type="text"
@@ -77,6 +84,7 @@ const Register = () => {
             )}
           </div>
 
+          {/* ---------- LAST NAME  ---------- */}
           <div className="form-group">
             <input
               type="text"
@@ -104,34 +112,52 @@ const Register = () => {
               <span className="error">{errors.gender.message}</span>
             )}
           </div> */}
-
+          {/* ---------- EMAIL  ---------- */}
           <div className="form-group">
             <input type="email" {...register("email")} placeholder="Email" />
             {errors.email && (
               <span className="error">{errors.email.message}</span>
             )}
           </div>
-
+          {/* ---------- PASSWORD  ---------- */}
           <div className="form-group">
             <input
-              type="password"
+              type={showPassword ? "text" : "password"}
               {...register("password")}
               placeholder="Password"
             />
             {errors.password && (
               <span className="error">{errors.password.message}</span>
             )}
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              <i className={`fas fa-${showPassword ? "eye-slash" : "eye"}`}></i>
+            </button>
           </div>
-
+          {/* ---------- CONFIRM PASSWORD  ---------- */}
           <div className="form-group">
             <input
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               {...register("confirmPassword")}
               placeholder="Confirm Password"
             />
             {errors.confirmPassword && (
               <span className="error">{errors.confirmPassword.message}</span>
             )}
+            <button
+              type="button"
+              className="toggle-password"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <i
+                className={`fas fa-${
+                  showConfirmPassword ? "eye-slash" : "eye"
+                }`}
+              ></i>
+            </button>
           </div>
 
           {/* Display Loading and Server Error Feedback */}

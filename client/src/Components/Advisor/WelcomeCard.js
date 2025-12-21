@@ -1,13 +1,12 @@
 import React from "react";
+import { useSelector } from "react-redux";
 
 const WelcomeCard = () => {
+  const user = useSelector((state) => state.user.user);
+
   return (
-    <div className="welcome-card">
-      <div className="welcome-content">
-        <h2>WELCOME BACK!</h2>
-        <p>You have connected with 60% of your advisees this week!</p>
-        {/* <button className="learn-more-btn">Learn More</button> */}
-      </div>
+    <div className="welcome-banner">
+      <h1>Welcome Back, {user?.firstName?.toUpperCase()}!</h1>
     </div>
   );
 };

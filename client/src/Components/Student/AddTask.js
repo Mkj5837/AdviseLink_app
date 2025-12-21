@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { createTask } from "../../Features/taskSlice";
+import api from "../../api/axios";
 import "../../css/StudentDashboard.css";
 
 const AddTask = () => {
@@ -14,6 +15,30 @@ const AddTask = () => {
   const [weight, setWeight] = useState("");
   const [deadline, setDeadline] = useState("");
   const [error, setError] = useState("");
+  const [advisees, setAdvisees] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState("self");
+
+  useEffect(() => {
+    const fetchAdvisees = async () => {
+      if (currentUser?.userType !== "advisor") return;
+      const advisorIdentifier = (
+        currentUser?.idNumber ||
+        currentUser?.email ||
+        currentUser?._id ||
+        ""
+      ).toString();
+      if (!advisorIdentifier) return;
+      try {
+        const res = await api.get(`/myAdvisees/${advisorIdentifier}`);
+        setAdvisees(Array.isArray(res.data) ? res.data : []);
+        setSelectedStudent("all");
+      } catch (err) {
+        console.error("Failed to load advisees:", err);
+        setAdvisees([]);
+      }
+    };
+    fetchAdvisees();
+  }, [currentUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,19 +46,48 @@ const AddTask = () => {
       setError("Please fill in all fields.");
       return;
     }
+
+    // Determine recipients based on role/selection
+    let recipients = [];
+    if (currentUser?.userType === "advisor") {
+      if (selectedStudent === "all") {
+        recipients = advisees;
+      } else {
+        const match = advisees.find((a) => a._id === selectedStudent);
+        if (match) recipients = [match];
+      }
+      if (recipients.length === 0) {
+        setError("Select at least one advisee.");
+        return;
+      }
+    } else if (currentUser?._id) {
+      recipients = [currentUser];
+    } else {
+      setError("Missing user info.");
+      return;
+    }
+
     setError("");
     try {
-      await dispatch(
-        createTask({
-          studentId: currentUser?._id,
-          title,
-          weight,
-          deadline,
-        })
+      await Promise.all(
+        recipients.map((student) =>
+          dispatch(
+            createTask({
+              studentId: student._id,
+              title,
+              weight,
+              deadline,
+            })
+          ).unwrap()
+        )
       );
-      navigate("/student-dashboard");
+      const targetRoute =
+        currentUser?.userType === "advisor" ? "/dashboard" : "/student-dashboard";
+      navigate(targetRoute);
     } catch (err) {
-      setError("Failed to create task.");
+      setError(
+        err?.message || "Failed to create task. Please try again."
+      );
     }
   };
 
@@ -51,6 +105,22 @@ const AddTask = () => {
               placeholder="Task title"
             />
           </label>
+          {currentUser?.userType === "advisor" && (
+            <label>
+              Assign to
+              <select
+                value={selectedStudent}
+                onChange={(e) => setSelectedStudent(e.target.value)}
+              >
+                <option value="all">All advisees</option>
+                {advisees.map((advisee) => (
+                  <option key={advisee._id} value={advisee._id}>
+                    {advisee.firstName} {advisee.lastName} ({advisee.idNumber})
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label>
             Weight
             <input

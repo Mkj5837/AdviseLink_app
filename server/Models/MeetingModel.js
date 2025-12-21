@@ -1,41 +1,24 @@
 import mongoose from "mongoose";
 
 const meetingSchema = new mongoose.Schema({
-  advisorId: 
-  { 
+  advisorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "users", required: true 
+    ref: "users",
+    required: true,
   },
-  studentId: 
-  {
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "users", default: null 
-  }, // Null = Available
-  startTime: 
-  { 
-    type: Date, 
-    required: true 
-  }, 
-  location: {
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "users",
+    default: null,
+  },
+  startTime: { type: Date, required: true },
+  notes: { type: String, default: "" }, // Add this line
+  status: {
     type: String,
-    default: "Remote"
+    enum: ["scheduled", "completed", "cancelled"],
+    default: "scheduled",
   },
-  meetingType: 
-  { 
-    type: String, 
-    default: "General" 
-  }, // To be used in DropDown 
-  isUrgent: 
-  { 
-    type: Boolean, 
-    default: false 
-  },  
-  status: 
-  { 
-    type: String, 
-    enum: ["scheduled", "completed", "cancelled"], 
-    default: "scheduled" 
-  }
 });
 
-export default mongoose.model("Meeting", meetingSchema);
+const MeetingModel = mongoose.model("Meeting", meetingSchema);
+export default MeetingModel;

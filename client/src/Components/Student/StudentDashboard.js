@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "../../css/StudentDashboard.css";
-import logo from "../../Images/AdviseLinkLogo.png";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
 import { postCheckIn } from "../../api/checkin";
@@ -45,7 +44,7 @@ const StudentDashboard = () => {
     (totalCount ? Math.round((completedCount / totalCount) * 100) : 0);
 
   const formatDeadline = (date) => {
-    if (!date) return "—";
+    if (!date) return "--";
     try {
       return new Date(date).toLocaleString("en-GB", {
         dateStyle: "medium",
@@ -116,31 +115,6 @@ const StudentDashboard = () => {
 
   return (
     <div className="student-dashboard">
-      <div className="sidebar">
-        <nav className="nav-menu">
-          <Link to="/student-dashboard" className="nav-item active">
-            <i className="fas fa-home"></i>
-            Dashboard
-          </Link>
-          <Link to="/add-task" className="nav-item">
-            <i className="fas fa-plus-circle"></i>
-            Add Task
-          </Link>
-          <Link to="/meetings" className="nav-item">
-            <i className="fas fa-calendar-alt"></i>
-            Meeting List
-          </Link>
-          <Link to="/about" className="nav-item">
-            <i className="fas fa-info-circle"></i>
-            About
-          </Link>
-          {/* <a href="#" className="nav-item">
-            <i className="fas fa-chart-line"></i>
-            GPA Improvement Plan
-          </a> */}
-        </nav>
-      </div>
-
       <div className="main-content">
         <div className="student-profile">
           <div className="profile-info">
@@ -151,7 +125,7 @@ const StudentDashboard = () => {
             />
             <div className="info">
               <h2>{studentInfo.name}</h2>
-              <p>ID: {studentInfo.id}</p>
+              <p>Student ID: {studentInfo.id}</p>
             </div>
           </div>
           <Link to="/student-dashboard" className="gpa-plan-btn">
@@ -170,39 +144,50 @@ const StudentDashboard = () => {
           </div>
           <div className="tasks-table">
             <div className="table-header">
-              <span>List of Tasks</span>
+              <span>Task</span>
               <span>Weight</span>
               <span>Deadline</span>
               <span>Status</span>
+              <span>Action</span>
             </div>
             {tasksLoading ? (
               <div className="task-row">
                 <span>Loading tasks...</span>
-                <span>—</span>
-                <span>—</span>
-                <span>—</span>
+                <span>--</span>
+                <span>--</span>
+                <span className="task-status">
+                  <span className="status-badge pending">Pending</span>
+                </span>
+                <span>--</span>
               </div>
             ) : tasks.length === 0 ? (
               <div className="task-row">
                 <span>No tasks yet.</span>
-                <span>—</span>
-                <span>—</span>
-                <span>—</span>
+                <span>--</span>
+                <span>--</span>
+                <span className="task-status">
+                  <span className="status-badge pending">Pending</span>
+                </span>
+                <span>--</span>
               </div>
             ) : (
               tasks.map((task) => (
                 <div key={task._id} className="task-row">
                   <span>{task.title}</span>
-                  <span>{task.weight ?? "—"}</span>
+                  <span>{task.weight ?? "--"}</span>
                   <span>{formatDeadline(task.deadline)}</span>
                   <span className="task-status">
                     <span
                       className={
-                        task.isCompleted ? "status-badge done" : "status-badge pending"
+                        task.isCompleted
+                          ? "status-badge done"
+                          : "status-badge pending"
                       }
                     >
                       {task.isCompleted ? "Completed" : "Pending"}
                     </span>
+                  </span>
+                  <span className="task-actions">
                     <button
                       type="button"
                       className="task-toggle"
@@ -217,11 +202,6 @@ const StudentDashboard = () => {
             )}
           </div>
         </div>
-
-        <Link to="/book-meeting" className="book-meeting-btn">
-          <i className="fas fa-info-circle"></i>
-          Book Meeting With Advisor
-        </Link>
 
         <div className="checkin-card">
           <div>
@@ -266,3 +246,7 @@ const StudentDashboard = () => {
 };
 
 export default StudentDashboard;
+
+
+
+

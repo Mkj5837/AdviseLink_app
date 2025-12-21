@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import api from "../../api/axios";
@@ -8,25 +8,60 @@ const BookMeeting = () => {
   const user = useSelector((state) => state.user.user);
   const navigate = useNavigate();
 
-  const [advisorId, setAdvisorId] = useState("");
+  const [advisor, setAdvisor] = useState(null); // Assigned advisor
   const [dateTime, setDateTime] = useState("");
-  const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
+  const [advisorError, setAdvisorError] = useState("");
+
+  //Fetch advisors
+  useEffect(() => {
+    const fetchAssignedAdvisor = async () => {
+      if (!user) return;
+      const identifiers = [
+        user?._id?.toString?.(),
+        user?.idNumber,
+        user?.email,
+        user?.studentId,
+      ].filter(Boolean);
+
+      if (identifiers.length === 0) return;
+
+      let lastError = "";
+      for (const identifier of Array.from(new Set(identifiers))) {
+        try {
+          const response = await api.get(`/myAdvisor/${identifier}`);
+          setAdvisor(response.data);
+          setAdvisorError("");
+          return;
+        } catch (err) {
+          lastError = err.response?.data?.error || err.message || lastError;
+        }
+      }
+
+      setAdvisor(null);
+      setAdvisorError(lastError || "No advisor assigned yet.");
+      console.error("Error loading advisor:", lastError);
+    };
+    fetchAssignedAdvisor();
+  }, [user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!advisorId || !dateTime) {
-      alert("Please provide advisor identifier and date/time.");
+    if (!advisor?._id && !advisor?.idNumber) {
+      alert("No advisor assigned. Please contact your advisor.");
+      return;
+    }
+    if (!dateTime) {
+      alert("Please choose a date/time.");
       return;
     }
     setLoading(true);
     try {
       const payload = {
-        advisorId,
+        advisorId: advisor?.idNumber || advisor?._id,
         studentId: user?.idNumber || user?.email,
         startTime: dateTime,
-        locationData: location || "Remote",
         notes,
       };
 
@@ -47,12 +82,17 @@ const BookMeeting = () => {
         <h2>Book Meeting With Advisor</h2>
         <form className="booking-form" onSubmit={handleSubmit}>
           <label>
-            Advisor ID or Email
+            Advisor
             <input
               type="text"
-              value={advisorId}
-              onChange={(e) => setAdvisorId(e.target.value)}
-              placeholder="advisor id or email"
+              value={
+                advisor
+                  ? `${advisor.firstName || ""} ${advisor.lastName || ""}${
+                      advisor.email ? ` (${advisor.email})` : ""
+                    }`.trim()
+                  : advisorError || "No advisor assigned yet."
+              }
+              disabled
             />
           </label>
 
@@ -62,16 +102,6 @@ const BookMeeting = () => {
               type="datetime-local"
               value={dateTime}
               onChange={(e) => setDateTime(e.target.value)}
-            />
-          </label>
-
-          <label>
-            Location (optional)
-            <input
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Room, building or 'Remote'"
             />
           </label>
 

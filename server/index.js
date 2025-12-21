@@ -12,9 +12,31 @@ import UserModel from "./Models/UserModel.js";
 import * as ENV from "./config.js";
 import MeetingModel from "./Models/MeetingModel.js";
 import TaskModel from "./Models/TaskModel.js";
+import AdviseeModel from "./Models/AdviseeModel.js";
 
 const app = express();
 app.use(express.json());
+
+// Helpers for case-insensitive, exact string matching
+const escapeRegex = (value = "") =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const buildExactMatchRegex = (value = "") =>
+  new RegExp(`^${escapeRegex(value)}$`, "i");
+const buildIdOrEmailQuery = (identifier = "") => {
+  const trimmed = identifier?.trim();
+  if (!trimmed) return null;
+  const clauses = [];
+  const regex = buildExactMatchRegex(trimmed);
+  clauses.push({ idNumber: regex }, { email: regex });
+
+  // allow direct ObjectId lookups when a valid 24-char hex is provided
+  if (mongoose.Types.ObjectId.isValid(trimmed)) {
+    clauses.push({ _id: new mongoose.Types.ObjectId(trimmed) });
+  }
+  return clauses;
+};
+const STUDENT_ROLE = { $regex: /^\s*student\s*$/i };
+const ADVISOR_ROLE = { $regex: /^\s*advisor\s*$/i };
 
 // Middleware
 const corsOptions = {
@@ -26,7 +48,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions));
 
-// Database connection (prefers environment variable)
+//Database connection
 const connectString =
   process.env.MONGO_URI ||
   `mongodb+srv://${ENV.DB_USER}:${ENV.DB_PASSWORD}@${ENV.DB_CLUSTER}/${ENV.DB_NAME}?retryWrites=true&w=majority&appName=AdviseLinkCluster`;
@@ -188,7 +210,7 @@ app.put("/updateUser", async (req, res) => {
   }
 });
 
-//delete api
+//delete user api
 app.delete("/deleteUser", async (req, res) => {
   const { email } = req.body;
   if (!email) {
@@ -218,7 +240,337 @@ app.delete("/deleteUser", async (req, res) => {
   }
 });
 
-// ------------------------------- Task Management APIs --------------------
+//------------------------------ Advisor-Student Relationship --------------------
+//Search user by ID number (for advisor to find students)
+app.get("/searchStudent/:idNumber", async (req, res) => {
+  try {
+    const idOrEmail = buildIdOrEmailQuery(req.params.idNumber);
+    if (!idOrEmail)
+      return res.status(400).json({ error: "Search term is required." });
+
+    const student = await UserModel.findOne({
+      $or: idOrEmail,
+      userType: STUDENT_ROLE,
+    }).select("idNumber firstName lastName email");
+
+    if (!student) return res.status(404).json({ error: "Student not found" });
+    res.status(200).json(student);
+  } catch (error) {
+    res.status(500).json({ error: "Search failed" });
+  }
+});
+
+//Add advisee to advisor's list in database
+app.post("/addAdvisee", async (req, res) => {
+  try {
+    const { advisorIdNumber, studentIdNumber } = req.body;
+
+    const advisorQuery = buildIdOrEmailQuery(advisorIdNumber);
+    const studentQuery = buildIdOrEmailQuery(studentIdNumber);
+
+    if (!advisorQuery || !studentQuery) {
+      return res
+        .status(400)
+        .json({ error: "Advisor and student identifiers are required." });
+    }
+
+    const advisor = await UserModel.findOne({
+      $or: advisorQuery,
+      userType: ADVISOR_ROLE,
+    });
+    const student = await UserModel.findOne({
+      $or: studentQuery,
+      userType: STUDENT_ROLE,
+    });
+
+    if (!advisor || !student) {
+      return res.status(404).json({ error: "Users not found." });
+    }
+
+    const newRelationship = new AdviseeModel({
+      advisorId: advisor._id,
+      studentId: student._id,
+    });
+
+    await newRelationship.save();
+
+    await UserModel.updateOne(
+      { _id: student._id },
+      { $set: { advisorId: advisor._id } }
+    );
+    res.status(201).json({ message: "Advisee linked successfully" });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ error: "Student is already in your list." });
+    }
+    res.status(500).json({ error: "Database error." });
+  }
+});
+
+//Fetch all advisees for a specific advisor
+app.get("/myAdvisees/:advisorIdNumber", async (req, res) => {
+  try {
+    const advisorQuery = buildIdOrEmailQuery(req.params.advisorIdNumber);
+    if (!advisorQuery)
+      return res.status(400).json({ error: "Advisor id is required." });
+
+    const advisor = await UserModel.findOne({
+      $or: advisorQuery,
+      userType: ADVISOR_ROLE,
+    });
+    if (!advisor) return res.status(404).json({ error: "Advisor not found" });
+
+    // Find relationships and populate student details, keep added date
+    const list = await AdviseeModel.find({ advisorId: advisor._id })
+      .populate("studentId", "idNumber firstName lastName email userType")
+      .lean();
+
+    res
+      .status(200)
+      .json(
+        list.map((item) => ({
+          ...(item.studentId || {}),
+          addedAt: item.addedAt,
+        }))
+      );
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch advisees" });
+  }
+});
+
+//Fetch advisor details for a specific student (reverse lookup)
+app.get("/myAdvisor/:studentIdNumber", async (req, res) => {
+  try {
+    const rawIdentifier = req.params.studentIdNumber?.trim();
+    const studentQuery = buildIdOrEmailQuery(rawIdentifier);
+    if (!studentQuery)
+      return res.status(400).json({ error: "Student id is required." });
+
+    const idMatch = mongoose.Types.ObjectId.isValid(rawIdentifier)
+      ? new mongoose.Types.ObjectId(rawIdentifier)
+      : null;
+
+    const directRelation = await AdviseeModel.findOne({
+      $or: [
+        ...(idMatch ? [{ studentId: idMatch }] : []),
+        ...(idMatch ? [{ studentId: idMatch.toString() }] : []),
+        { studentId: rawIdentifier },
+      ],
+    })
+      .sort({ addedAt: -1 })
+      .populate("advisorId", "idNumber firstName lastName email")
+      .lean();
+
+    if (directRelation?.advisorId) {
+      return res.status(200).json(directRelation.advisorId);
+    }
+
+    const student = await UserModel.findOne({ $or: studentQuery });
+
+    if (student?.advisorId) {
+      const advisor = await UserModel.findById(student.advisorId).select(
+        "idNumber firstName lastName email"
+      );
+      if (advisor) {
+        return res.status(200).json(advisor);
+      }
+    }
+
+    if (student) {
+      const relation = await AdviseeModel.findOne({
+        $or: [
+          { studentId: student._id },
+          { studentId: student._id?.toString?.() },
+        ],
+      })
+        .sort({ addedAt: -1 })
+        .populate("advisorId", "idNumber firstName lastName email")
+        .lean();
+
+      if (relation?.advisorId) {
+        await UserModel.updateOne(
+          { _id: student._id },
+          { $set: { advisorId: relation.advisorId._id } }
+        );
+        return res.status(200).json(relation.advisorId);
+      }
+
+      const meeting = await MeetingModel.findOne({ studentId: student._id })
+        .sort({ startTime: -1 })
+        .populate("advisorId", "idNumber firstName lastName email")
+        .lean();
+
+      if (meeting?.advisorId) {
+        await UserModel.updateOne(
+          { _id: student._id },
+          { $set: { advisorId: meeting.advisorId._id } }
+        );
+        return res.status(200).json(meeting.advisorId);
+      }
+    }
+
+    const identifierRegex = buildExactMatchRegex(rawIdentifier);
+
+    const adviseeMatches = await AdviseeModel.aggregate([
+      {
+        $lookup: {
+          from: "users",
+          localField: "studentId",
+          foreignField: "_id",
+          as: "student",
+        },
+      },
+      { $unwind: "$student" },
+      {
+        $match: {
+          $or: [
+            { "student.idNumber": identifierRegex },
+            { "student.email": identifierRegex },
+            ...(idMatch ? [{ "student._id": idMatch }] : []),
+          ],
+        },
+      },
+      { $sort: { addedAt: -1 } },
+      { $limit: 1 },
+      {
+        $lookup: {
+          from: "users",
+          localField: "advisorId",
+          foreignField: "_id",
+          as: "advisor",
+        },
+      },
+      { $unwind: "$advisor" },
+      {
+        $project: {
+          _id: "$advisor._id",
+          idNumber: "$advisor.idNumber",
+          firstName: "$advisor.firstName",
+          lastName: "$advisor.lastName",
+          email: "$advisor.email",
+          studentId: "$student._id",
+        },
+      },
+    ]);
+
+    if (adviseeMatches.length) {
+      const advisor = adviseeMatches[0];
+      await UserModel.updateOne(
+        { _id: advisor.studentId },
+        { $set: { advisorId: advisor._id } }
+      );
+      const { studentId, ...advisorPayload } = advisor;
+      return res.status(200).json(advisorPayload);
+    }
+
+    res.status(404).json({ error: "Advisor not assigned." });
+  } catch (error) {
+    console.error("Error fetching advisor:", error);
+    res.status(500).json({ error: "Failed to fetch advisor." });
+  }
+});
+
+//Get advisee progress for advisee list data
+app.get("/adviseeProgress/:studentId", async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const idOrEmail = buildIdOrEmailQuery(studentId);
+    if (!idOrEmail)
+      return res.status(400).json({ error: "Student id is required." });
+
+    const student = await UserModel.findOne({
+      $or: idOrEmail,
+      userType: STUDENT_ROLE,
+    });
+    if (!student) return res.status(404).json({ error: "Student not found" });
+
+    //fetch all tasks of this student (support historical formats)
+    const tasks = await TaskModel.find({
+      $or: [
+        { studentId: student._id }, // current ObjectId format
+        { studentId: student._id?.toString?.() }, // stringified ObjectId
+        { studentId: student.idNumber }, // legacy idNumber
+        { studentId: student.email }, // fallback
+      ],
+    });
+
+    if (tasks.length === 0) {
+      return res.json({ progress: 0 });
+    }
+
+    //progress calculation logic
+    const completedTasks = tasks.filter((t) => t.isCompleted);
+    let progress = Math.round((completedTasks.length / tasks.length) * 100);
+
+    //deadline penalties for missed work
+    let penalties = 0;
+    const now = new Date();
+    completedTasks.forEach((task) => {
+      if (task.deadline && now > new Date(task.deadline)) {
+        penalties++;
+      }
+    });
+    // progress maths
+    progress = Math.max(0, progress - penalties);
+    res.status(200).json({ progress });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch progress" });
+  }
+});
+
+// Remove an advisee from the advisor's list
+app.delete("/removeAdvisee", async (req, res) => {
+  try {
+    const { advisorIdNumber, studentIdNumber } = req.body;
+
+    const advisorQuery = buildIdOrEmailQuery(advisorIdNumber);
+    const studentQuery = buildIdOrEmailQuery(studentIdNumber);
+
+    if (!advisorQuery || !studentQuery) {
+      return res
+        .status(400)
+        .json({ error: "Advisor and student identifiers are required." });
+    }
+
+    // Find the actual database ObjectIds first
+    const advisor = await UserModel.findOne({
+      $or: advisorQuery,
+      userType: ADVISOR_ROLE,
+    });
+    const student = await UserModel.findOne({
+      $or: studentQuery,
+      userType: STUDENT_ROLE,
+    });
+
+    if (!advisor || !student) {
+      return res.status(404).json({ error: "Users not found." });
+    }
+
+    // Delete the relationship record from the advisees collection
+    const deleted = await AdviseeModel.findOneAndDelete({
+      advisorId: advisor._id,
+      studentId: student._id,
+    });
+
+    if (!deleted) {
+      return res.status(404).json({ error: "Relationship not found." });
+    }
+
+    await UserModel.updateOne(
+      { _id: student._id, advisorId: advisor._id },
+      { $set: { advisorId: null } }
+    );
+
+    res.status(200).json({ message: "Advisee removed successfully." });
+  } catch (error) {
+    console.error("Error removing advisee:", error);
+    res.status(500).json({ error: "Internal server error." });
+  }
+});
+
+// ------------------------------- Tasks APIs --------------------
 app.post("/tasks", async (req, res) => {
   try {
     const { studentId, title, weight, deadline } = req.body;
@@ -235,7 +587,7 @@ app.post("/tasks", async (req, res) => {
       weight,
       deadline,
       daysRemaining: daysRemaining < 0 ? 0 : daysRemaining, // Logic: don't show negative days
-      isCompleted: false
+      isCompleted: false,
     });
 
     await newTask.save();
@@ -243,51 +595,6 @@ app.post("/tasks", async (req, res) => {
   } catch (error) {
     console.log("Error creating task:", error);
     res.status(500).json({ error: "Failed to create task." });
-  }
-});
-
-app.post("/scheduleMeeting", async (req, res) => {
-  try {
-    const { advisorId, studentId, startTime, locationData } = req.body;
-
-    const newMeeting = new MeetingModel({
-      advisorId,
-      studentId,
-      startTime,
-      // Storing coordinates meets the "Location-based feature" requirement [cite: 51]
-      location: locationData || "Remote",
-      status: "scheduled"
-    });
-
-    await newMeeting.save();
-    console.log("Meeting scheduled successfully:", newMeeting);
-    res.status(201).json(newMeeting);
-  } catch (error) {
-    console.log("Error scheduling meeting:", error); 
-    res.status(500).json({ error: "Failed to schedule meeting." });
-  }
-});
-
-// GET meetings by student or advisor
-app.get("/meetings", async (req, res) => {
-  try {
-    const { studentId, advisorId, status } = req.query;
-    const filter = {};
-    if (studentId) filter.studentId = studentId;
-    if (advisorId) filter.advisorId = advisorId;
-    if (status) filter.status = status;
-
-    if (!studentId && !advisorId) {
-      return res
-        .status(400)
-        .json({ error: "studentId or advisorId is required." });
-    }
-
-    const meetings = await MeetingModel.find(filter).sort({ startTime: 1 });
-    res.status(200).json(meetings);
-  } catch (error) {
-    console.log("Error fetching meetings:", error);
-    res.status(500).json({ error: "Failed to fetch meetings." });
   }
 });
 
@@ -303,7 +610,161 @@ app.get("/tasks/:studentId", async (req, res) => {
   }
 });
 
-// Location-based check-in (captures coords for auditing)
+//UPDATE TASK: Mark as complete and calculate overall progress %
+app.put("/updateTaskStatus/:taskId", async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { isCompleted, studentId } = req.body;
+
+    //update the specific task status
+    await TaskModel.findByIdAndUpdate(taskId, { isCompleted });
+
+    //find all tasks for this student to calculate percentage.
+    const allTasks = await TaskModel.find({ studentId });
+    const completedTasksList = allTasks.filter((t) => t.isCompleted);
+
+    const totalCount = allTasks.length;
+    const completedCount = completedTasksList.length;
+
+    //base calculation
+    let progressPercentage =
+      totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+
+    console.log(
+      `Student ${studentId} progress updated to: ${progressPercentage}%`
+    );
+
+    //deadline Penalty (-1% per late task)
+    let penaltyCount = 0;
+    const now = new Date();
+
+    completedTasksList.forEach((task) => {
+      // If the task was completed after the deadline date
+      if (task.deadline && now > new Date(task.deadline)) {
+        penaltyCount++;
+      }
+    });
+
+    //apply the penalty
+    progressPercentage = Math.max(0, progressPercentage - penaltyCount);
+
+    console.log(
+      `Progress for ${studentId}: ${progressPercentage}% (Penalties: ${penaltyCount})`
+    );
+
+    //send back the updated progress so React can show it immediately
+    res.status(200).json({
+      message: "Task updated and progress calculated.",
+      currentProgress: progressPercentage,
+      completedCount: completedCount,
+      totalCount: totalCount,
+      penalties: penaltyCount,
+    });
+  } catch (error) {
+    console.log("Error updating task/calculating progress:", error);
+    res.status(500).json({ error: "Internal Server Error." });
+  }
+});
+
+// ------------------------------- Meeting APIs --------------------
+//schedule a new meeting
+app.post("/scheduleMeeting", async (req, res) => {
+  try {
+    const { advisorId, studentId, startTime, notes } = req.body;
+
+    const advisor = await UserModel.findOne({ idNumber: advisorId });
+    const student = await UserModel.findOne({
+      $or: [{ idNumber: studentId }, { email: studentId }],
+    });
+
+    if (!advisor) return res.status(404).json({ error: "Advisor not found" });
+
+    const newMeeting = new MeetingModel({
+      advisorId: advisor._id,
+      studentId: student ? student._id : null,
+      startTime,
+      notes,
+      status: "scheduled",
+    });
+
+    await newMeeting.save();
+    console.log("Meeting scheduled successfully:", newMeeting);
+    res.status(201).json(newMeeting);
+  } catch (error) {
+    console.log("Error scheduling meeting:", error);
+    res.status(500).json({ error: "Failed to schedule meeting." });
+  }
+});
+
+// GET all registered advisors for the dropdown menu that will show in client side.
+app.get("/advisors", async (req, res) => {
+  try {
+    const advisors = await UserModel.find({ userType: "advisor" }).select(
+      "idNumber firstName lastName"
+    ); //Only return necessary fields
+    res.status(200).json(advisors);
+  } catch (error) {
+    console.error("Error fetching advisors:", error);
+    res.status(500).json({ error: "Failed to fetch advisor list." });
+  }
+});
+
+//GET meetings by student or advisor
+app.get("/meetings", async (req, res) => {
+  try {
+    const { studentId, advisorId, status } = req.query;
+    const filter = {};
+    if (studentId) {
+      if (mongoose.Types.ObjectId.isValid(studentId)) {
+        filter.studentId = new mongoose.Types.ObjectId(studentId);
+      } else {
+        const student = await UserModel.findOne({
+          $or: buildIdOrEmailQuery(studentId) || [],
+          userType: STUDENT_ROLE,
+        });
+        if (student) {
+          filter.studentId = student._id;
+        } else {
+          return res.status(404).json({ error: "Student not found." });
+        }
+      }
+    }
+    if (advisorId) {
+      if (mongoose.Types.ObjectId.isValid(advisorId)) {
+        filter.advisorId = new mongoose.Types.ObjectId(advisorId);
+      } else {
+        const advisor = await UserModel.findOne({
+          $or: buildIdOrEmailQuery(advisorId) || [],
+          userType: ADVISOR_ROLE,
+        });
+        if (advisor) {
+          filter.advisorId = advisor._id;
+        } else {
+          return res.status(404).json({ error: "Advisor not found." });
+        }
+      }
+    }
+    if (status) filter.status = status;
+
+    if (!studentId && !advisorId) {
+      return res
+        .status(400)
+        .json({ error: "studentId or advisorId is required." });
+    }
+
+    const meetings = await MeetingModel.find(filter)
+      .sort({ startTime: 1 })
+      .populate("studentId", "firstName lastName idNumber email")
+      .populate("advisorId", "firstName lastName idNumber email");
+    res.status(200).json(meetings);
+  } catch (error) {
+    console.log("Error fetching meetings:", error);
+    res.status(500).json({ error: "Failed to fetch meetings." });
+  }
+});
+
+//---------------------------------- Location-based Features --------------------
+//Location-based check-in (captures co-ords)
 app.post("/checkin", async (req, res) => {
   try {
     const { studentId, latitude, longitude, timestamp } = req.body;
@@ -313,7 +774,6 @@ app.post("/checkin", async (req, res) => {
         .json({ error: "studentId, latitude, and longitude are required." });
     }
 
-    // This is a lightweight endpoint; in production you'd persist to a collection.
     console.log(
       `Check-in from ${studentId}: (${latitude}, ${longitude}) at ${
         timestamp || new Date().toISOString()
@@ -331,66 +791,7 @@ app.post("/checkin", async (req, res) => {
   }
 });
 
-//UPDATE TASK: Mark as complete and calculate overall progress %
-app.put("/updateTaskStatus/:taskId", async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    const { isCompleted, studentId } = req.body;
-
-    //update the specific task status
-    await TaskModel.findByIdAndUpdate(taskId, { isCompleted });
-
-    //find all tasks for this student to calculate percentage.
-    const allTasks = await TaskModel.find({ studentId });
-    const completedTasksList = allTasks.filter(t => t.isCompleted);
-
-    const totalCount = allTasks.length;
-    const completedCount = completedTasksList.length;
-
-    // base calculation
-    let progressPercentage = totalCount > 0 
-      ? Math.round((completedCount / totalCount) * 100) 
-      : 0;
-
-    console.log(`Student ${studentId} progress updated to: ${progressPercentage}%`);
-
-    //deadline Penalty (-1% per late task)
-    let penaltyCount = 0;
-    const now = new Date();
-
-    completedTasksList.forEach(task => {
-      // If the task was completed after the deadline date
-      if (task.deadline && now > new Date(task.deadline)) {
-        penaltyCount++;
-      }
-    });
-
-    //apply the penalty
-    progressPercentage = Math.max(0, progressPercentage - penaltyCount);
-
-    console.log(`Progress for ${studentId}: ${progressPercentage}% (Penalties: ${penaltyCount})`);
-
-    //send back the updated progress so React can show it immediately
-    res.status(200).json({
-      message: "Task updated and progress calculated.",
-      currentProgress: progressPercentage,
-      completedCount: completedCount,
-      totalCount: totalCount,
-      penalties: penaltyCount 
-    });
-
-  } catch (error) {
-    console.log("Error updating task/calculating progress:", error);
-    res.status(500).json({ error: "Internal Server Error." });
-  }
-});
-
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Connected to server on port ${PORT}.`);
 });
-
-// const PORT = ENV.PORT || 4000 || 3001 || 5000;
-// app.listen(PORT, () => {
-//   console.log(`You are connect. Server running on port ${PORT}`);
-// });

@@ -14,14 +14,13 @@ import Dashboard from "./Components/Advisor/Dashboard";
 import StudentDashboard from "./Components/Student/StudentDashboard";
 import Register from "./Components/Register";
 import About from "./Components/About";
-import UserList from "./Components/UserList";
-import UpdateUser from "./Components/UpdateUser";
+import UserList from "./Components/Advisor/UserList";
 import Profile from "./Components/Profile";
 import ProtectedRoute from "./Components/ProtectedRoute";
 import BookMeeting from "./Components/Student/BookMeeting";
 import AddTask from "./Components/Student/AddTask";
 import MeetingList from "./Components/Student/MeetingList";
-import AdvisorTasks from "./Components/Advisor/AdvisorTasks";
+import MainLayout from "./Components/MainLayout";
 
 const App = () => {
   //get the current user from Redux state
@@ -34,8 +33,6 @@ const App = () => {
 
   useEffect(() => {
     try {
-      // Only auto-redirect when userType appears AND the user is at the root/login
-      // This prevents forcing navigation away from nested child routes (e.g. /dashboard/profile)
       if (!userType) return;
       const atRoot =
         location.pathname === "/" ||
@@ -55,94 +52,82 @@ const App = () => {
   //end of useEffect
 
   return (
-    <Container fluid>
+    <Container fluid className="p-0">
       <div className="App">
-        {/* protected route */}
-        {email ? <Header /> : null}
+        {/*Global header*/}
+        {email && <Header />}
+
         <Routes>
-          {/* public routes */}
+          {/*Public Routes*/}
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute userType={"advisor"}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/student-dashboard"
-            element={
-              <ProtectedRoute userType={"student"}>
-                <StudentDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/book-meeting"
-            element={
-              <ProtectedRoute userType={"student"}>
-                <BookMeeting />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/add-task"
-            element={
-              <ProtectedRoute>
-                <AddTask />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/tasks"
-            element={
-              <ProtectedRoute userType={"advisor"}>
-                <AdvisorTasks />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/meetings"
-            element={
-              <ProtectedRoute>
-                <MeetingList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/advisees"
-            element={
-              <ProtectedRoute userType={"advisor"}>
-                <UserList />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/about" element={<About />} />
-          <Route
-            path="/userlist"
-            element={
-              <ProtectedRoute userType={"advisor"}>
-                <UserList />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
-          {/* <Route
-            path="/update/:email/:name/:password"
-            element={<UpdateUser />}
-          /> */}
+
+          {/*NESTED LAYOUT: shared by all users*/}
+          <Route element={<MainLayout />}>
+            {/*student routes*/}
+            <Route
+              path="/student-dashboard"
+              element={
+                <ProtectedRoute userType="student">
+                  <StudentDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/book-meeting"
+              element={
+                <ProtectedRoute userType="student">
+                  <BookMeeting />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/meetings"
+              element={
+                <ProtectedRoute userType={["student", "advisor"]}>
+                  <MeetingList />
+                </ProtectedRoute>
+              }
+            />
+
+            {/*Advisor routes*/}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute userType="advisor">
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/add-task"
+              element={
+                <ProtectedRoute userType="advisor">
+                  <AddTask />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/userlist"
+              element={
+                <ProtectedRoute userType="advisor">
+                  <UserList />
+                </ProtectedRoute>
+              }
+            />
+            {/*more shared routes/content */}
+            <Route path="/about" element={<About />} />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
+          </Route>
         </Routes>
-        {/* Public/unprotected  route */}
         <Footer />
       </div>
     </Container>

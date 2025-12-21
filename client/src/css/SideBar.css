@@ -1,19 +1,13 @@
 .sidebar {
-  width: 220px;
-  height: 100vh;
-  background-color: #2c3e50;
-  color: #fff;
-  position: fixed;
-  left: 0;
-  top: 0;
+  width: 240px;
+  background-color: #ffffff; /* White background */
+  border-right: 1px solid #e0e0e0; /* Subtle divider */
   display: flex;
   flex-direction: column;
-  align-items: center;
-  box-shadow: 2px 0 8px rgba(0,0,0,0.05);
-  z-index: 100;
+  padding-top: 20px;
 }
 
-.sidebar-logo {
+/* .sidebar-logo {
   margin: 32px 0 24px 0;
 }
 
@@ -21,29 +15,56 @@
   color: #fff;
   font-size: 1.8rem;
   letter-spacing: 2px;
+} */
+
+.sidebar h2 {
+  color: rgb(12, 12, 12);
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  text-align: center;
 }
 
 .sidebar-nav ul {
   list-style: none;
   padding: 0;
-  width: 100%;
+  margin: 0;
 }
 
 .sidebar-nav li {
-  width: 100%;
-  margin: 12px 0;
+  margin-bottom: 10px;
 }
 
 .sidebar-nav a {
-  display: block;
-  color: #fff;
+  color: rgb(7, 7, 7);
   text-decoration: none;
-  padding: 12px 24px;
-  transition: background 0.2s;
+  padding: 10px;
+  display: block;
   border-radius: 4px;
+  transition: background 0.3s;
 }
 
-.sidebar-nav a:hover,
-.sidebar-nav a.active {
-  background-color: #34495e;
+.sidebar-nav a:hover {
+  background-color: #f0f7ff; /* Very light blue on hover */
+  color: #0056b3;
+}
+
+.nav-link {
+  color: #007bff;
+  text-decoration: none;
+  padding: 12px 20px;
+  display: block;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+/* The Blue Box Highlight (Active state) */
+.active-link {
+  background-color: #007bff; /* Blue box */
+  color: #ffffff !important; /* White text when active */
+  text-decoration: none;
+  padding: 12px 20px;
+  display: block;
+  font-weight: 600;
+  margin: 0 10px; /* Gives it that 'box' look away from edges */
+  border-radius: 8px;
 }

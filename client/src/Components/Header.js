@@ -43,11 +43,11 @@ const Header = () => {
 
   return (
     <>
-      <Navbar color="light" light expand="md">
+      <Navbar color="light" light expand="md" className="px-4 border-bottom">
         <NavbarBrand tag={Link} to={homePath}>
           <img src={logo} className="logo" alt="AdviseLink Logo" />
         </NavbarBrand>
-        <Nav>
+        <Nav className="ms-auto">
           {/*Use currentUser for conditional rendering */}
           {currentUser && (
             <>

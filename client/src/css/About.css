@@ -1,8 +1,20 @@
 .about-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fa;
   padding: 40px;
+  text-align: center;
+  background-color: #fff;
+  color: #333;
+}
+
+.about-container h1 {
+  color: #007bff;
+  margin-bottom: 40px;
+}
+
+.team-grid {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  flex-wrap: wrap;
 }
 
 .about-content {
@@ -49,10 +61,29 @@
 }
 
 .member-card {
-  text-align: center;
-  padding: 20px;
-  background-color: #f8f9fa;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
   border-radius: 12px;
+  padding: 25px;
+  width: 300px;
+  transition: transform 0.3s ease;
+}
+
+.member-card:hover {
+  transform: translateY(-5px);
+  border-color: #007bff;
+}
+
+.role {
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 10px;
+}
+
+.description {
+  font-size: 0.95rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
 }
 
 .member-card h3 {
@@ -60,52 +91,20 @@
   color: #333;
 }
 
-.role {
-  color: #4285f4;
-  margin-bottom: 15px;
-  font-size: 14px;
-}
-
-.social-links {
+.social-icons {
   display: flex;
   justify-content: center;
-  gap: 15px;
+  gap: 20px;
 }
 
-.social-links a {
-  color: #666;
-  font-size: 18px;
-  transition: color 0.3s ease;
+.social-icons a {
+  font-size: 1.5rem;
+  color: #007bff;
+  transition: color 0.3s;
 }
 
-.social-links a:hover {
-  color: #4285f4;
-}
-
-.contact-button {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 24px;
-  background-color: #4285f4;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  margin: 0 auto;
-  transition: background-color 0.3s ease;
-}
-
-.contact-button:hover {
-  background-color: #3367d6;
-}
-
-.about-text {
-  background-color: white;
-  padding: 40px;
-  border-radius: 12px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+.social-icons a:hover {
+  color: #0056b3;
 }
 
 .about-text h2 {
