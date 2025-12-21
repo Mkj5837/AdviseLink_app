@@ -1,0 +1,311 @@
+/* Base link styles */
+a {
+  text-decoration: none;
+}
+a:link {
+  color: rgb(53, 86, 251);
+}
+
+/* visited link */
+a:visited {
+  color: rgb(84, 16, 161);
+}
+
+/* Reset styles for full-screen layout */
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+}
+
+/* App container styles - critical for proper layout with Reactstrap */
+.container-fluid {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  overflow-x: hidden;
+  /* min-height: 100vh; */
+  display: flex;
+  /* flex-direction: column; */
+}
+
+/* Row styles to ensure proper layout */
+.row {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  width: 100%;
+}
+
+/* Main content row should expand to fill available space */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Login page styles */
+.login {
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+}
+
+.div-form {
+  border-style: solid;
+  border-width: thin;
+  font-size: 24px;
+  padding-left: 50px;
+  padding-right: 50px;
+  padding-bottom: 10px;
+  padding-top: 10px;
+  background-color: rgb(252, 252, 252);
+  border-radius: 10px;
+  width: 100%;
+  height: 100%;
+  border-color: #a6d49f;
+  margin-top: 10px;
+  margin-bottom: 10px;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* min-height: 100vh; */
+  width: 100%;
+  background-color: #f5f5f5;
+  padding: 20px;
+  margin: 0;
+}
+
+.login-container {
+  background: white;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Typography styles */
+h1 {
+  color: #4285f4;
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+/* Form styles */
+.login-form {
+  text-align: left;
+}
+
+.sign-in-text {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+label {
+  display: block;
+  color: #333;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+input:focus {
+  outline: none;
+  border-color: #4285f4;
+}
+
+.password-input-container {
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #666;
+}
+
+.forgot-password {
+  display: block;
+  text-align: right;
+  color: #666;
+  text-decoration: none;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+.sign-in-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #4285f4;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+.sign-in-button:hover {
+  background-color: #3367d6;
+}
+
+.create-account {
+  color: #666;
+  font-size: 14px;
+  text-align: center;
+}
+
+.create-account a {
+  color: #4285f4;
+  text-decoration: none;
+}
+
+.create-account a:hover {
+  text-decoration: underline;
+}
+
+/* Home page styles */
+.home-page {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0px;
+  background-color: #f8f9fa;
+  width: 100%;
+  margin-bottom: 0 !important;
+  padding-bottom: 0px;
+}
+
+.logo {
+  width: 80px;
+  height: 80px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 40px;
+  margin-right: 20px; /* Space between logo and navigation */
+}
+.nav {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.nav a {
+  text-decoration: none;
+  color: #000;
+  margin: 0 15px;
+}
+
+.nav a:hover {
+  color: #007bff;
+}
+
+.nav-link a {
+  color: inherit;
+  text-decoration: none;
+}
+.navbar {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+  padding-top: 0 !important;
+}
+
+/* App wrapper to ensure full width */
+.App {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+  padding-top: 0 !important;
+}
+
+/* Content area styles */
+.content-area {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  .login-container {
+    padding: 20px;
+    max-width: 90%;
+  }
+
+  .div-form {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav a {
+    margin: 5px 0;
+  }
+}
+
+/* Footer Styles */
+.footer {
+  background-color: #f8f9fa;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 14px;
+  color: #6c757d;
+  border-top: 1px solid #e9ecef;
+}
